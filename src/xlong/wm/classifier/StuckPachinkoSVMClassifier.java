@@ -214,23 +214,25 @@ public class StuckPachinkoSVMClassifier extends AbstractSingleLabelClassifier  {
 	}
 	
 	@Override
-	public String test(Sample sample) throws Exception {
-		return test("root", sample);
+	public OutputStructure test(Sample sample) throws Exception {
+		return test("root", 1.0, sample);
 	}
 	
-	private String test(String label, Sample sample) throws Exception {
+	private OutputStructure test(String label, double p, Sample sample) throws Exception {
 		TreeSet<String> subLabels = sons.get(label);
 		if (subLabels == null) {
-			return label;
+			return new OutputStructure(label, p);
 		}
 		weka.classifiers.Classifier stucker = loadClassifier(stuckers.get(label));
+		double pstuck = 0;
 		if (stucker != null) {
 			TextToSparseVectorConverter converter = stuckConverters.get(label);
 			Sample vecSample = converter.convert(sample);
 			SparseVectorSampleToWekaInstanceAdapter adapter = stuckAdapters.get(label);
-			int classID = (int)(stucker.classifyInstance(adapter.adaptSample(vecSample)) + 0.5);
+			pstuck = stucker.classifyInstance(adapter.adaptSample(vecSample));
+			int classID = (int)(pstuck + 0.5);
 			if (classID == 1) {
-				return label;
+				return new OutputStructure(label, p*pstuck);
 			}
 		}
 		double maximum = -1;
@@ -246,32 +248,42 @@ public class StuckPachinkoSVMClassifier extends AbstractSingleLabelClassifier  {
 				maxLabel = subLabel;
 			}
 		}
-		return test(maxLabel, sample);
+		return test(maxLabel, p*(1-pstuck)*maximum, sample);
 	}
 
 	@Override
-	public Vector<String> test(Vector<Sample> samples) throws Exception {
-		return test("root", samples);
+	public Vector<OutputStructure> test(Vector<Sample> samples) throws Exception {
+		Vector<Double> ps = new Vector<Double>();
+		int n = samples.size();
+		for (int i = 0; i < n; i++) {
+			ps.add(1.0);
+		}
+		return test("root", ps, samples);
 	}
 	
 
-	public Vector<String> test(String label, Vector<Sample> samples) throws Exception {
-		Vector<String> results = new Vector<String>();
+	public Vector<OutputStructure> test(String label, Vector<Double> ps, Vector<Sample> samples) throws Exception {
+		Vector<OutputStructure> results = new Vector<OutputStructure>();
 		TreeSet<String> sublabelSet= sons.get(label);
 		
 		int n = samples.size();
 		
 		if (sublabelSet == null) {
 			for (int i = 0; i < n; i++) {
-				results.add(label);
+				results.add(new OutputStructure(label, ps.get(i)));
 			}
 			return results;
 		}
 		Vector<String> subLabels = new Vector<String>(sublabelSet);
 		
 		int m = subLabels.size();
+		double[] nextP = new double[n];
+		for (int i = 0 ; i < n; i++) {
+			nextP[i] = ps.get(i);
+		}
 		String[] nextLabel = new String[n];
 		double[][] probs = new double[n][m];
+		int[] cnts = new int[n];
 		
 		weka.classifiers.Classifier stucker = loadClassifier(stuckers.get(label));
 		if (stucker != null) {
@@ -280,10 +292,13 @@ public class StuckPachinkoSVMClassifier extends AbstractSingleLabelClassifier  {
 				TextToSparseVectorConverter converter = stuckConverters.get(label);
 				Sample vecSample = converter.convert(sample);
 				SparseVectorSampleToWekaInstanceAdapter adapter = stuckAdapters.get(label);
-				int classID = (int)(stucker.classifyInstance(adapter.adaptSample(vecSample)) + 0.5);
+				double pstuck = stucker.distributionForInstance(adapter.adaptSample(vecSample))[1];
+				int classID = (int)(pstuck + 0.5);
 				if (classID == 1) {
-					nextLabel[i] = label ;
+					nextP[i] = nextP[i] * pstuck;
+					nextLabel[i] = label;
 				} else {
+					nextP[i] = nextP[i] * (1.0-pstuck);
 					nextLabel[i] = null;
 				}
 			}
@@ -296,7 +311,9 @@ public class StuckPachinkoSVMClassifier extends AbstractSingleLabelClassifier  {
 			TextToSparseVectorConverter converter = selectConverters.get(join(label, subLabel));
 			SparseVectorSampleToWekaInstanceAdapter adapter = selectAdapters.get(join(label, subLabel));
 			for (int i = 0; i < n; i++) {
+				cnts[i] = 0;
 				if (nextLabel[i] == null) {
+					cnts[i] ++;
 					Sample sample = samples.get(i);
 					Sample vecSample = converter.convert(sample);
 					probs[i][j] = selecter.distributionForInstance(adapter.adaptSample(vecSample))[1];
@@ -307,34 +324,44 @@ public class StuckPachinkoSVMClassifier extends AbstractSingleLabelClassifier  {
 		for (int i = 0; i < n; i++) {
 			if (nextLabel[i] == null) {
 				double maximum = -1;
+				double tot = 0;
 				for (int j = 0; j < m; j++) {
+					tot += probs[i][j];
 					if (probs[i][j] > maximum) {
 						nextLabel[i] = subLabels.get(j);
 						maximum = probs[i][j];
 					}
 				}
+				double p = 1.0/cnts[i];
+				if (tot > 1e-8) {
+					p = maximum/tot;
+				}
+				nextP[i] = nextP[i] * p;
 			}
 		}
 		
 		for (int j = 0; j < m; j++) {
 			String subLabel = subLabels.get(j);
 			Vector<Sample> partsSamples = new Vector<Sample>();
+			Vector<Double> partsP = new Vector<Double>();
 			for (int i = 0; i < n; i++) {
 				if (nextLabel[i] == subLabel) {
 					partsSamples.add(samples.get(i));
+					partsP.add(nextP[i]);
 				}
 			}
-			Vector<String> partsRes = test(subLabel, partsSamples);
+			Vector<OutputStructure> partsRes = test(subLabel, partsP, partsSamples);
 			int idx = 0;
 			for (int i = 0; i < n; i++) {
 				if (nextLabel[i] == subLabel) {
-					nextLabel[i] = partsRes.get(idx);
+					nextLabel[i] = partsRes.get(idx).getLabel();
+					nextP[i] = partsRes.get(idx).getP();
 					idx++;
 				}
 			}			
 		}
 		for (int i = 0; i < n; i++) {
-			results.add(nextLabel[i]);
+			results.add(new OutputStructure(nextLabel[i], nextP[i]));
 		}
 		return results;
 	}

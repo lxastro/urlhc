@@ -56,7 +56,7 @@ public class GetParsedData {
 			if (cnt % 100000 == 0) {
 				System.out.println(cnt);
 			}
-			Sample sample = new Sample(new Text(urlParser.parse(en.getKey())), Labels.getLabels(en.getValue()));
+			Sample sample = new Sample(en.getKey(), new Text(urlParser.parse(en.getKey())), Labels.getLabels(en.getValue()));
 			flatComposite.addSample(sample);
 		}
 		System.out.println(flatComposite.countSample());
@@ -72,7 +72,7 @@ public class GetParsedData {
 				System.out.println(cnt);
 			}
 			String label = en.getValue().first(); 
-			Sample sample = new Sample(new Text(urlParser.parse(en.getKey())), Labels.getLabels(tree.getPath(label)));
+			Sample sample = new Sample(en.getKey(), new Text(urlParser.parse(en.getKey())), Labels.getLabels(tree.getPath(label)));
 			treeComposite.addSample(sample);
 		}
 		System.out.println(treeComposite.countSample());

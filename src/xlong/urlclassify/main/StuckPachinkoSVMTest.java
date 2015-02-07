@@ -5,15 +5,19 @@ import java.io.InputStreamReader;
 import java.util.Random;
 import java.util.Vector;
 
+
+
 import weka.classifiers.Classifier;
 import xlong.util.MyWriter;
 import xlong.wm.evaluater.OntologySingleLabelEvaluater;
 import xlong.wm.ontology.OntologyTree;
 import xlong.wm.sample.Composite;
+import xlong.wm.sample.Sample;
 import xlong.wm.sample.Texts;
 import xlong.wm.sample.converter.TextToSparseVectorConverter;
 import xlong.nlp.tokenizer.SingleWordTokenizer;
 import xlong.nlp.tokenizer.Tokenizer;
+import xlong.wm.classifier.OutputStructure;
 import xlong.wm.classifier.SingleLabelClassifier;
 import xlong.wm.classifier.StuckPachinkoSVMClassifier;
 import xlong.wm.classifier.partsfactory.ClassifierPartsFactory;
@@ -91,6 +95,18 @@ public class StuckPachinkoSVMTest {
 		MyWriter.writeln("recall: " + evaluater.getAverRecall());
 		MyWriter.writeln("f1: " + evaluater.getAverF1());
 		MyWriter.close();
+		
+		Vector<String> actuals = evaluater.getActuals();
+		Vector<OutputStructure> predicts = evaluater.getPredicts();
+		Vector<Sample> samples = evaluater.getSamples();
+		int n = actuals.size();
+		MyWriter.setFile(resultDir + "/output.txt", false);
+		for (int i = 0; i < n; i++) {
+			MyWriter.writeln(samples.get(i).getURL());
+			MyWriter.writeln(predicts.get(i).getLabel() + " " + actuals.get(i) + " " + predicts.get(i).getP());
+		}
+		MyWriter.close();
+
 		
 		MyWriter.writeln("accuracy: " + evaluater.getAccuracy());
 		MyWriter.writeln("hamming loss: " + evaluater.getAverHammingLoss());

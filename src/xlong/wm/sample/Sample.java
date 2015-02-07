@@ -13,6 +13,7 @@ import java.util.TreeSet;
  * Instance to store property and labels.
  */
 public class Sample implements SampleComponent {
+	private final String url;
 	/** Property of a instance. */
 	private final Property property;
 	/** Labels of a instance. */
@@ -23,7 +24,8 @@ public class Sample implements SampleComponent {
 	 * @param property the property
 	 * @param labels the labels
 	 */
-	public Sample(final Property property, final Collection<Label> labels) {
+	public Sample(final String url, final Property property, final Collection<Label> labels) {
+		this.url = url;
 		this.property = property;
 		
 		String str = Labels.labelsToString(labels);
@@ -41,6 +43,7 @@ public class Sample implements SampleComponent {
 	 * @throws IOException IOException
 	 */
 	public Sample(final BufferedReader in, final Properties pFactory) throws IOException {
+		url = in.readLine();
 		property = pFactory.getProperty(in.readLine());
 		labels = Labels.loadFromString(in.readLine());
 	}
@@ -48,8 +51,8 @@ public class Sample implements SampleComponent {
 	/**
 	 * @param property the property
 	 */
-	public Sample(final Property property) {
-		this(property, new TreeSet<Label>());
+	public Sample(final String url, final Property property) {
+		this(url, property, new TreeSet<Label>());
 	}
 	@Override
 	public final int countSample() {
@@ -61,6 +64,9 @@ public class Sample implements SampleComponent {
 		return true;
 	}
 
+	public final String getURL(){
+		return url;
+	}
 	/**
 	 * @return the property
 	 */
@@ -94,6 +100,7 @@ public class Sample implements SampleComponent {
 	 * @throws IOException IOException
 	 */
 	public final void save(final BufferedWriter out) throws IOException {
+		out.write(url + "\n");
 		out.write(property.getOneLineString() + "\n");
 		out.write(Labels.labelsToString(labels) + "\n");
 	}

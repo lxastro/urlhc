@@ -6,6 +6,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import xlong.wm.classifier.OutputStructure;
 import xlong.wm.classifier.SingleLabelClassifier;
 import xlong.wm.sample.Composite;
 import xlong.wm.sample.Sample;
@@ -27,6 +28,7 @@ public class SingleLabelEvaluater extends Evaluater {
 	protected int total;
 	
 	private Vector<Sample> samples;
+	private Vector<OutputStructure> predicts;
 	private Vector<String> actuals;
 	
 	public SingleLabelEvaluater(SingleLabelClassifier singleLabelClassifier) {
@@ -67,10 +69,10 @@ public class SingleLabelEvaluater extends Evaluater {
 //	}
 	
 	private void evaluate(Vector<Sample> samples, Vector<String> actual) throws Exception{
-		Vector<String> predicts = singleLabelClassifier.test(samples);
+		predicts = singleLabelClassifier.test(samples);
 		int n = predicts.size();
 		for (int i = 0; i < n; i++) {
-			addCnt(actual.get(i), predicts.get(i));
+			addCnt(actual.get(i), predicts.get(i).getLabel());
 		}
 		total += predicts.size();
 	}
@@ -91,8 +93,6 @@ public class SingleLabelEvaluater extends Evaluater {
 	
 	private void evaluate() throws Exception {
 		evaluate(samples, actuals);
-		samples = new Vector<>();
-		actuals = new Vector<>();
 	}
 	
 	@Override
@@ -159,6 +159,21 @@ public class SingleLabelEvaluater extends Evaluater {
 			out.write(labels[i]);
 			out.write("\n");
 		}
+	}
+
+	@Override
+	public Vector<String> getActuals() {
+		return actuals;
+	}
+
+	@Override
+	public Vector<OutputStructure> getPredicts() {
+		return predicts;
+	}
+
+	@Override
+	public Vector<Sample> getSamples() {
+		return samples;
 	}
 
 

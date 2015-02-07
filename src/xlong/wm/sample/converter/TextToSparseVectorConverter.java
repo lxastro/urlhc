@@ -328,7 +328,7 @@ public class TextToSparseVectorConverter {
 	public Sample convert(Sample textSample) {
 		SparseVector sv = new SparseVector(convert((((Text) textSample.getProperty()).getText())), dictionary.size());
 		Set<Label> labels = textSample.getLabels(); 
-		return new Sample(sv, labels);
+		return new Sample(textSample.getURL(), sv, labels);
 	}
 	
 	public Composite convert(Composite textComposite) {
