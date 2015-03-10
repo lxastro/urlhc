@@ -20,9 +20,11 @@
 	<classpathentry kind="lib" path="E:/longx/lib/Apache_Jena/apache-jena-2.11.1/lib/xercesImpl-2.11.0.jar"/>
 	<classpathentry kind="lib" path="E:/longx/lib/Apache_Jena/apache-jena-2.11.1/lib/xml-apis-1.4.01.jar"/>
 	<classpathentry kind="lib" path="E:/longx/lib/Libidn/libidn-1.28.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files/Weka-3-7/weka.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Weka-3-6/weka.jar"/>
 	<classpathentry kind="lib" path="E:/longx/lib/stemmer/ptstemmer.jar"/>
 	<classpathentry kind="lib" path="E:/longx/lib/stemmer/ptstemmer-weka.jar"/>
 	<classpathentry kind="lib" path="E:/longx/lib/stemmer/snowball-20051019.jar"/>
+	<classpathentry kind="lib" path="E:/longx/lib/libsvm/wlsvm.jar"/>
+	<classpathentry kind="lib" path="E:/longx/lib/libsvm/libsvm-3.18/java/libsvm.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

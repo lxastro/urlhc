@@ -41,43 +41,43 @@ public class SparseVectorSampleToWekaInstanceAdapter{
 	}
 	
 	//weka 3-7
-	private Instances initInstances(Map<String, Integer> labelMap) {
-		ArrayList<Attribute> atts = new ArrayList<Attribute>();
-		ArrayList<String> attVals = new ArrayList<String>(labelMap.keySet());
-		for (Entry<String, Integer> en:labelMap.entrySet()) {
-			attVals.set(en.getValue(), en.getKey());
-		}
-		atts.add(new Attribute("class", attVals));
-		for (int i = 0; i < numOfAttributes; i++) {
-			atts.add(new Attribute(String.valueOf(i)));
-		}
-		Instances instances = new Instances("", atts, 0);
-		instances.setClassIndex(0);
-		return instances;
-	}
-	
-//	//weka 3-6
 //	private Instances initInstances(Map<String, Integer> labelMap) {
-//		weka.core.FastVector atts = new weka.core.FastVector();
-//		weka.core.FastVector attVals = new weka.core.FastVector(labelMap.keySet().size());
-//
-//		String[] tmps = new String[labelMap.size()];
-//		
+//		ArrayList<Attribute> atts = new ArrayList<Attribute>();
+//		ArrayList<String> attVals = new ArrayList<String>(labelMap.keySet());
 //		for (Entry<String, Integer> en:labelMap.entrySet()) {
-//			tmps[en.getValue()] = en.getKey();
+//			attVals.set(en.getValue(), en.getKey());
 //		}
-//		for (String str:tmps) {
-//			attVals.addElement(str);
-//		}
-//		atts.addElement(new Attribute("class", attVals));
-//		
+//		atts.add(new Attribute("class", attVals));
 //		for (int i = 0; i < numOfAttributes; i++) {
-//			atts.addElement(new Attribute(String.valueOf(i)));
+//			atts.add(new Attribute(String.valueOf(i)));
 //		}
 //		Instances instances = new Instances("", atts, 0);
 //		instances.setClassIndex(0);
 //		return instances;
 //	}
+	
+	//weka 3-6
+	private Instances initInstances(Map<String, Integer> labelMap) {
+		weka.core.FastVector atts = new weka.core.FastVector();
+		weka.core.FastVector attVals = new weka.core.FastVector(labelMap.keySet().size());
+
+		String[] tmps = new String[labelMap.size()];
+		
+		for (Entry<String, Integer> en:labelMap.entrySet()) {
+			tmps[en.getValue()] = en.getKey();
+		}
+		for (String str:tmps) {
+			attVals.addElement(str);
+		}
+		atts.addElement(new Attribute("class", attVals));
+		
+		for (int i = 0; i < numOfAttributes; i++) {
+			atts.addElement(new Attribute(String.valueOf(i)));
+		}
+		Instances instances = new Instances("", atts, 0);
+		instances.setClassIndex(0);
+		return instances;
+	}
 	
 	private SparseInstance sparseVectorToSparseInstance(SparseVector vec, double classID) {
 		int len = vec.getIndexs().length;

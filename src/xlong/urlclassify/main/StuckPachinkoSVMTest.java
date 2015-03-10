@@ -7,7 +7,9 @@ import java.util.Vector;
 
 
 
+
 import weka.classifiers.Classifier;
+import weka.classifiers.functions.LibSVM;
 import xlong.util.MyWriter;
 import xlong.wm.evaluater.OntologySingleLabelEvaluater;
 import xlong.wm.ontology.OntologyTree;
@@ -56,7 +58,14 @@ public class StuckPachinkoSVMTest {
 			}
 			@Override
 			public Classifier getNewClassifier() {
-				weka.classifiers.Classifier classifier = new xlong.urlclassify.others.LibLINEAR(); //weka 3-7
+				//weka.classifiers.Classifier classifier = new xlong.urlclassify.others.LibLINEAR(); //weka 3-7
+				
+				weka.classifiers.Classifier classifier = new weka.classifiers.functions.LibSVM(); //weka 3-6
+				try {
+					((LibSVM) classifier).setOptions(weka.core.Utils.splitOptions("-K 0 -J -V -M 100 -B"));
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 				return classifier;
 			}
 		};	
@@ -69,8 +78,10 @@ public class StuckPachinkoSVMTest {
 		System.out.println(treeComposite.getComposites().size());
 		Vector<Composite> composites;
 		
-		composites = treeComposite.split(new int[] {70, 30}, new Random(123));
+		//composites = treeComposite.split(new int[] {70, 30}, new Random(123));
+		composites = treeComposite.split(new int[] {2, 1}, new Random(123));
 		train = composites.get(0);
+		train.cutBranch(10);
 		System.out.println(train.countSample());
 		train.save(resultDir + "/trainText");	
 		test = composites.get(1);

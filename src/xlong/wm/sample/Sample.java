@@ -17,7 +17,7 @@ public class Sample implements SampleComponent {
 	/** Property of a instance. */
 	private final Property property;
 	/** Labels of a instance. */
-	private final TreeSet<Label> labels;
+	private TreeSet<Label> labels;
 	/** Labels pool. */
 	private static Map<String, TreeSet<Label>> labelsPool = new HashMap<String, TreeSet<Label>>();
 	/**
@@ -77,6 +77,17 @@ public class Sample implements SampleComponent {
 	@Override
 	public final Set<Label> getLabels() {
 		return labels;
+	}
+	
+	public final Label getLabel() {
+		for (Label label:labels) {
+			return label;
+		}
+		return null;
+	}
+	
+	public final void setLabels(TreeSet<Label> labels) {
+		this.labels = labels;
 	}
 	
 	/**

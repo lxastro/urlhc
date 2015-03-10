@@ -26,6 +26,7 @@ public class SingleLabelEvaluater extends Evaluater {
 	protected TreeMap<String, TreeMap<String, Count>> cnt;
 	protected TreeSet<String> labelSet;
 	protected int total;
+	protected int ignore;
 	
 	private Vector<Sample> samples;
 	private Vector<OutputStructure> predicts;
@@ -36,6 +37,7 @@ public class SingleLabelEvaluater extends Evaluater {
 		cnt = new TreeMap<String, TreeMap<String, Count>>();
 		labelSet = new TreeSet<>();
 		total = 0;
+		ignore = 0;
 		samples = new Vector<>();
 		actuals = new Vector<>();
 	}
@@ -51,6 +53,11 @@ public class SingleLabelEvaluater extends Evaluater {
 	}
 	
 	private void addCnt(String actual, String predict) {
+		total ++;
+		if (predict == null) {
+			ignore ++;
+			return;
+		}
 		labelSet.add(actual);
 		labelSet.add(predict);
 		if (!cnt.containsKey(actual)) {
@@ -74,7 +81,6 @@ public class SingleLabelEvaluater extends Evaluater {
 		for (int i = 0; i < n; i++) {
 			addCnt(actual.get(i), predicts.get(i).getLabel());
 		}
-		total += predicts.size();
 	}
 	
 	private void addEvaluate(Sample sample, String actual) {
@@ -97,12 +103,20 @@ public class SingleLabelEvaluater extends Evaluater {
 	
 	@Override
 	public double getAccuracy() {
+		if (total == ignore) {
+			return 0.0;
+		}
 		int tp = 0;
 		for (String label:labelSet) {
 			tp += getCnt(label, label);
 		}
-		return ((double) tp) / total;
+		return ((double) tp) / (total - ignore);
 	}
+	
+	@Override
+	public double getIgnoreRate() {
+		return ((double) ignore) / total;
+	};
 	
 	@Override
 	public int[][] getConfusionMatrix() {
@@ -176,6 +190,6 @@ public class SingleLabelEvaluater extends Evaluater {
 		return samples;
 	}
 
-
+	
 
 }

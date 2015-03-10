@@ -21,6 +21,8 @@ public abstract class Evaluater {
 	
 	public abstract double getAccuracy();
 	
+	public abstract double getIgnoreRate();
+	
 	public abstract int[][] getConfusionMatrix();
 	
 	public abstract String[] getLabelSet();

@@ -48,10 +48,10 @@ public class OntologySingleLabelEvaluater extends SingleLabelEvaluater {
 				
 			}
 		}
-		hammingLoss = ham/total;
-		precision = pre/total;
-		recall = rec/total;
-		f1 = f1s/total;
+		hammingLoss = ham/(total-ignore);
+		precision = pre/(total-ignore);
+		recall = rec/(total-ignore);
+		f1 = f1s/(total-ignore);
 	}
 	
 	public double getAverHammingLoss() {

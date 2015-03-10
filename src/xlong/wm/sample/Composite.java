@@ -335,4 +335,15 @@ public class Composite implements SampleComponent {
 			}
 		}
 	}
+	
+	public void relabel() {
+		for (Composite composite:composites) {
+			composite.relabel();
+		}
+		TreeSet<Label> labelSet = new TreeSet<Label>();
+		labelSet.add(label);
+		for (Sample sample:samples) {
+			sample.setLabels(labelSet);
+		}
+	}
 }
