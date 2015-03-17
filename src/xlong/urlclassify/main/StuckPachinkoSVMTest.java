@@ -62,7 +62,7 @@ public class StuckPachinkoSVMTest {
 				
 				weka.classifiers.Classifier classifier = new weka.classifiers.functions.LibSVM(); //weka 3-6
 				try {
-					((LibSVM) classifier).setOptions(weka.core.Utils.splitOptions("-K 0 -J -V -M 100 -B"));
+					((LibSVM) classifier).setOptions(weka.core.Utils.splitOptions("-K 0 -J -V -M 1024 -H 0 -B"));
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -78,10 +78,10 @@ public class StuckPachinkoSVMTest {
 		System.out.println(treeComposite.getComposites().size());
 		Vector<Composite> composites;
 		
-		//composites = treeComposite.split(new int[] {70, 30}, new Random(123));
-		composites = treeComposite.split(new int[] {2, 1}, new Random(123));
+		composites = treeComposite.split(new int[] {70, 30}, new Random(123));
+		//composites = treeComposite.split(new int[] {2, 1}, new Random(123));
 		train = composites.get(0);
-		train.cutBranch(10);
+		//train.cutBranch(10);
 		System.out.println(train.countSample());
 		train.save(resultDir + "/trainText");	
 		test = composites.get(1);
