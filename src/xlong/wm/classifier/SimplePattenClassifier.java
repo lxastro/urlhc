@@ -140,8 +140,8 @@ public class SimplePattenClassifier implements SingleLabelClassifier {
 		int idx = 0;
 		for (Sample sample:samples) {
 			idx ++;
-			if (idx % 10000 == 0) {
-				//System.out.println(idx);
+			if (idx % 100000 == 0) {
+				System.out.println(idx);
 			}
 			vector.add(test(sample));
 		}
