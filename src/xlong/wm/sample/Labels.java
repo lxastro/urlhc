@@ -27,47 +27,34 @@ public final class Labels {
 
 	/** An implements of Label. */
 	private static class LabelImpl implements Label {
+
+		private static final long serialVersionUID = -971502388681718206L;
 		/** Text of the Label. */
 		private final String text;
-		/** ID which is ordered by first creating time. */
-		private final int id;
 		
 		/**
 		 * Get a new LabelImpl.
 		 * @param text the text
 		 * @param id the ID
 		 */
-		LabelImpl(final String text, final int id) {
+		LabelImpl(final String text) {
 			this.text = text;
-			this.id = id;
 		}
 		
 		@Override
 		public int compareTo(final Label o) {
-			return getID() - o.getID();
+			return text.compareTo(o.getText());
 		}
 
 		@Override
 		public String getText() {
 			return text;
 		}
-
-		@Override
-		public int getID() {
-			return id;
-		}
 		
 		@Override
 		public String toString() {
-			return text + "(" + id + ")";
+			return text;
 		}
-	}
-	
-	/**
-	 * 
-	 */
-	private Labels() {
-		
 	}
 	
 	/**
@@ -78,21 +65,13 @@ public final class Labels {
 	public static Label getLabel(final String text) {
 		Label label = labels.get(text);
 		if (label == null) {
-			label = new LabelImpl(text, labelVector.size());
+			label = new LabelImpl(text);
 			labelVector.add(label);
 			labels.put(text, label);
 		}
 		return label;
 	}
-	
-	/**
-	 * 
-	 * @param id id
-	 * @return the label
-	 */
-	public static Label getLabel(final int id) {
-		return labelVector.get(id);
-	}
+
 	/**
 	 * 
 	 * @param texts texts
@@ -151,5 +130,12 @@ public final class Labels {
 	 */
 	public static int cntLabel() {
 		return labels.size();
+	}
+
+	/**
+	 * @return all of the exist labels
+	 */
+	public static Vector<Label> getLabels() {
+		return labelVector;
 	}
 }

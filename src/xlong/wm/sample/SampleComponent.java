@@ -1,11 +1,12 @@
 package xlong.wm.sample;
 
+import java.io.Serializable;
 import java.util.Set;
 
 /**
  * InstanceComponent.
  */
-public interface SampleComponent {
+public interface SampleComponent extends Serializable {
 	/**
 	 * @return number of instances in this component.
 	 */

@@ -20,6 +20,8 @@ import xlong.wm.ontology.OntologyTree;
  * 
  */
 public class Composite implements SampleComponent {
+	
+	private static final long serialVersionUID = 6438922454926608536L;
 	/** */
 	private final Vector<Sample> samples;
 	/** */

@@ -33,8 +33,10 @@ public class SimplePattenTest {
 		System.out.println(treeComposite.getComposites().size());
 		Vector<Composite> composites;
 		
-		composites = treeComposite.split(new int[] {70, 30}, new Random(123));
+		//composites = treeComposite.split(new int[] {70, 30}, new Random(123));
+		composites = treeComposite.split(new int[] {7, 3}, new Random(123));
 		train = composites.get(0);
+		train.cutBranch(1);
 		System.out.println(train.countSample());
 		train.save(resultDir + "/trainText");	
 		test = composites.get(1);
@@ -45,10 +47,12 @@ public class SimplePattenTest {
 		test = new Composite(resultDir + "/testText", new Texts());
 		
 		train.relabel();
-		for (int minnum = 20; minnum <= 100; minnum*=2) {
+		for (int minnum = 5; minnum <= 5; minnum*=2) {
 			SingleLabelClassifier singleLabelClassifier = new SimplePattenClassifier(minnum);
 			System.out.println("train " + minnum);
 			singleLabelClassifier.train(train);
+			singleLabelClassifier.save(1);
+			singleLabelClassifier = SimplePattenClassifier.load(1);
 			
 			OntologySingleLabelEvaluater evaluater = new OntologySingleLabelEvaluater(singleLabelClassifier, tree);
 			System.out.println("test");

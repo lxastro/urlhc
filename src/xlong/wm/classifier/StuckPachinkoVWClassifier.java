@@ -1,6 +1,10 @@
 package xlong.wm.classifier;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,6 +24,8 @@ import xlong.wm.sample.converter.TextToSparseVectorConverter;
 import xlong.wm.vw.VWBinaryClassifier;
 
 public class StuckPachinkoVWClassifier extends AbstractSingleLabelClassifier  {
+
+	private static final long serialVersionUID = -1579838531910064576L;
 	private Map<String, String> selecters;
 	private Map<String, String> stuckers;
 	private Map<String, TextToSparseVectorConverter> selectConverters;
@@ -27,13 +33,14 @@ public class StuckPachinkoVWClassifier extends AbstractSingleLabelClassifier  {
 	private Map<String, TreeSet<String>> sons;
 	protected ClassifierPartsFactory factory;
 	
+	private int fileID = 0;
+	
 	private static String inputDir = "result/VW/input/";
 	private static String modelDir = "result/VW/model/";
 	private static String cacheDir = "result/VW/cache/";
-	private static int fileID = 0;
-	private static String inputName = ".classifier";
-	private static String modelName = ".model";
-	private static String cacheName = ".cache";
+	private static String inputExt = ".classifier";
+	private static String modelExt = ".model";
+	private static String cacheExt = ".cache";
 	//private static final String OPTION = "-M";
 	
 	static {
@@ -73,7 +80,7 @@ public class StuckPachinkoVWClassifier extends AbstractSingleLabelClassifier  {
 	}
 	
 	private String newFilePath() {
-		return inputDir + String.valueOf(fileID++) + inputName;
+		return inputDir + String.valueOf(fileID++) + inputExt;
 	}
 	
 	@Override
@@ -111,10 +118,10 @@ public class StuckPachinkoVWClassifier extends AbstractSingleLabelClassifier  {
 	
 	private void getModel() throws Exception {
 		for (int i = 0; i < fileID; i++) {
-			String line = "vw -d " + (inputDir + String.valueOf(i) + inputName);
-			line += " --loss_function logistic --cache_file " + (cacheDir + String.valueOf(i) + cacheName); 
+			String line = "vw -d " + (inputDir + String.valueOf(i) + inputExt);
+			line += " --loss_function logistic --cache_file " + (cacheDir + String.valueOf(i) + cacheExt); 
 			//line += " --l1 1e-8 -f " + (modelDir + String.valueOf(i) + modelName);
-			line += " --passes 5 --l1 1e-8 -f " + (modelDir + String.valueOf(i) + modelName);
+			line += " --passes 100 --l1 1e-8 -f " + (modelDir + String.valueOf(i) + modelExt);
 			VWBinaryClassifier.runCommand(line);
 		}
 	}
@@ -384,6 +391,28 @@ public class StuckPachinkoVWClassifier extends AbstractSingleLabelClassifier  {
 		if (fileID == null) {
 			return null;
 		}
-		return modelDir + fileID + modelName;
+		return modelDir + fileID + modelExt;
+	}
+	
+	private static String getModelName(int id) {
+		return modelDir + "vw" + id + modelExt;
+	}
+
+	@Override
+	public void save(int id) throws Exception {
+		String fileName = getModelName(id);
+		FileOutputStream fos = new FileOutputStream(fileName);
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+        oos.writeObject(this);
+        oos.close();
+	}
+
+	public static StuckPachinkoVWClassifier load(int id) throws Exception {
+		String fileName = getModelName(id);
+		FileInputStream fis = new FileInputStream(fileName);
+		ObjectInputStream ois = new ObjectInputStream(fis);
+		StuckPachinkoVWClassifier classifier = (StuckPachinkoVWClassifier) ois.readObject();
+		ois.close();
+		return classifier;
 	}
 }

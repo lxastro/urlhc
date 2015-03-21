@@ -1,5 +1,6 @@
 package xlong.wm.classifier.adapter;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
@@ -13,7 +14,10 @@ import weka.core.SparseInstance;
 import xlong.wm.sample.Sample;
 import xlong.wm.sample.SparseVector;
 
-public class SparseVectorSampleToWekaInstanceAdapter{
+public class SparseVectorSampleToWekaInstanceAdapter implements Serializable{
+	
+	private static final long serialVersionUID = 1752677685119535909L;
+	
 	private int numOfAttributes;
 	private Map<String, Integer> labelMap;
 	private Instances dataSet;

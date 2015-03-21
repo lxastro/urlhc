@@ -5,6 +5,7 @@ import java.util.List;
 
 public class SingleWordTokenizer extends Tokenizer {
 
+	private static final long serialVersionUID = -740116059502329171L;
 	private static final String DELIMITERSREG = "[0-9_\\W]";
 
 	public SingleWordTokenizer() {

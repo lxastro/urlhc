@@ -10,6 +10,7 @@ import java.util.TreeMap;
  */
 public class SparseVector implements Property {
 
+	private static final long serialVersionUID = -6084520877271424779L;
 	/** */
 	private int[] indexs;
 	/** */

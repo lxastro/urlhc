@@ -6,6 +6,8 @@ package xlong.wm.sample;
  *
  */
 public class Texts implements Properties {
+	
+	private static final long serialVersionUID = -7934491749352265020L;
 
 	@Override
 	public final Property getProperty(final String s) {

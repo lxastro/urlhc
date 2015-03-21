@@ -13,6 +13,9 @@ import java.util.TreeSet;
  * Instance to store property and labels.
  */
 public class Sample implements SampleComponent {
+	
+	private static final long serialVersionUID = -2866643130656638671L;
+	
 	private final String url;
 	/** Property of a instance. */
 	private final Property property;
@@ -111,9 +114,15 @@ public class Sample implements SampleComponent {
 	 * @throws IOException IOException
 	 */
 	public final void save(final BufferedWriter out) throws IOException {
-		out.write(url + "\n");
-		out.write(property.getOneLineString() + "\n");
-		out.write(Labels.labelsToString(labels) + "\n");
+		out.write(toString());
+	}
+	
+	@Override
+	public String toString() {
+		String s = url + "\n";
+		s += property.getOneLineString() + "\n";
+		s += Labels.labelsToString(labels) + "\n";
+		return s;
 	}
 
 }

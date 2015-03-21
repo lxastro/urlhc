@@ -35,7 +35,9 @@ import xlong.wm.sample.Text;
  * 
  * @author Xiang Long (longx13@mails.tsinghua.edu.cn)
  */
-public class TextToSparseVectorConverter {
+public class TextToSparseVectorConverter implements Serializable{
+	
+	private static final long serialVersionUID = 1567110506956621482L;
 	
 	private Tokenizer tokenizer;
 	private static HashSet<String> stopwords = new HashSet<String>();

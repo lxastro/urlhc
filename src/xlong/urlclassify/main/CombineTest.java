@@ -39,6 +39,8 @@ public class CombineTest {
 		TextToSparseVectorConverter.addStopwords(new BufferedReader(new InputStreamReader(StuckPachinkoSVMTest.class.getResourceAsStream(stopWordsFile))));
 		
 		ClassifierPartsFactory factory = new ClassifierPartsFactory() {
+
+			private static final long serialVersionUID = -8952784630277717127L;
 			protected final Tokenizer tokenizer = new SingleWordTokenizer();
 			@Override
 			public TextToSparseVectorConverter getNewConverter() {
@@ -75,7 +77,8 @@ public class CombineTest {
 		System.out.println(treeComposite.getComposites().size());
 		Vector<Composite> composites;
 		
-		composites = treeComposite.split(new int[] {70, 30}, new Random(123));
+		//composites = treeComposite.split(new int[] {70, 30}, new Random(123));
+		composites = treeComposite.split(new int[] {2, 1}, new Random(123));
 		train = composites.get(0);
 		train.cutBranch(1);
 		System.out.println(train.countSample());
@@ -96,6 +99,8 @@ public class CombineTest {
 		System.out.println("train");
 
 		singleLabelClassifier.train(train);
+		singleLabelClassifier.save(1);
+		singleLabelClassifier = CombineClassifier.load(1);
 		
 		OntologySingleLabelEvaluater evaluater = new OntologySingleLabelEvaluater(singleLabelClassifier, tree);
 		System.out.println("test");

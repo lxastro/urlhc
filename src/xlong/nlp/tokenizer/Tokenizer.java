@@ -1,8 +1,11 @@
 package xlong.nlp.tokenizer;
 
+import java.io.Serializable;
 import java.util.List;
 
-public abstract class Tokenizer {
+public abstract class Tokenizer implements Serializable {
+
+	private static final long serialVersionUID = 5550979689329232540L;
 	Tokenizer father;
 	public Tokenizer(Tokenizer father) {
 		this.father = father;

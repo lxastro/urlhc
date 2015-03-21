@@ -8,6 +8,7 @@ import java.util.Vector;
 
 
 
+
 import weka.classifiers.Classifier;
 //import weka.classifiers.functions.LibSVM;
 import xlong.util.MyWriter;
@@ -41,6 +42,8 @@ public class StuckPachinkoSVMTest {
 		TextToSparseVectorConverter.addStopwords(new BufferedReader(new InputStreamReader(StuckPachinkoSVMTest.class.getResourceAsStream(stopWordsFile))));
 		
 		ClassifierPartsFactory factory = new ClassifierPartsFactory() {
+		
+			private static final long serialVersionUID = 8437804111731321668L;
 			protected final Tokenizer tokenizer = new SingleWordTokenizer();
 			@Override
 			public TextToSparseVectorConverter getNewConverter() {
@@ -81,7 +84,7 @@ public class StuckPachinkoSVMTest {
 		//composites = treeComposite.split(new int[] {70, 30}, new Random(123));
 		composites = treeComposite.split(new int[] {2, 1}, new Random(123));
 		train = composites.get(0);
-		train.cutBranch(1);
+		train.cutBranch(10);
 		System.out.println(train.countSample());
 		train.save(resultDir + "/trainText");	
 		test = composites.get(1);
@@ -94,6 +97,8 @@ public class StuckPachinkoSVMTest {
 		SingleLabelClassifier singleLabelClassifier = new StuckPachinkoSVMClassifier(factory);
 		System.out.println("train");
 		singleLabelClassifier.train(train);
+		singleLabelClassifier.save(1);
+		singleLabelClassifier = StuckPachinkoSVMClassifier.load(1);
 		
 		OntologySingleLabelEvaluater evaluater = new OntologySingleLabelEvaluater(singleLabelClassifier, tree);
 		System.out.println("test");

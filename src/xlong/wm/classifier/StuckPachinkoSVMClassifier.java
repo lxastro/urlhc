@@ -20,6 +20,8 @@ import xlong.wm.sample.Sample;
 import xlong.wm.sample.converter.TextToSparseVectorConverter;
 
 public class StuckPachinkoSVMClassifier extends AbstractSingleLabelClassifier  {
+
+	private static final long serialVersionUID = -5882370481198868075L;
 	private Map<String, String> selecters;
 	private Map<String, String> stuckers;
 	private Map<String, TextToSparseVectorConverter> selectConverters;
@@ -29,9 +31,11 @@ public class StuckPachinkoSVMClassifier extends AbstractSingleLabelClassifier  {
 	private Map<String, TreeSet<String>> sons;
 	protected ClassifierPartsFactory factory;
 	
-	private static String fileDir = "result/classifiers/";
-	private static int fileID = 0;
+	private int fileID = 0;
+	
+	private static String fileDir = "result/SVM/";
 	private static String extName = ".classifier";
+	private static String modelExt = ".model";
 	//private static final String OPTION = "-M";
 	
 	static {
@@ -51,6 +55,7 @@ public class StuckPachinkoSVMClassifier extends AbstractSingleLabelClassifier  {
 		stuckAdapters = new TreeMap<String, SparseVectorSampleToWekaInstanceAdapter>();	
 		sons = new TreeMap<String, TreeSet<String>>();
 		this.factory = factory;
+		fileID = 0;
 	}
 	
 	public StuckPachinkoSVMClassifier(StuckPachinkoSVMClassifier classifiers) {
@@ -364,6 +369,28 @@ public class StuckPachinkoSVMClassifier extends AbstractSingleLabelClassifier  {
 			results.add(new OutputStructure(nextLabel[i], nextP[i]));
 		}
 		return results;
+	}
+	
+	private static String getModelName(int id) {
+		return fileDir + "svm" + id + modelExt;
+	}
+
+	@Override
+	public void save(int id) throws Exception {
+		String fileName = getModelName(id);
+		FileOutputStream fos = new FileOutputStream(fileName);
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+        oos.writeObject(this);
+        oos.close();
+	}
+
+	public static StuckPachinkoSVMClassifier load(int id) throws Exception {
+		String fileName = getModelName(id);
+		FileInputStream fis = new FileInputStream(fileName);
+		ObjectInputStream ois = new ObjectInputStream(fis);
+		StuckPachinkoSVMClassifier classifier = (StuckPachinkoSVMClassifier) ois.readObject();
+		ois.close();
+		return classifier;
 	}
 	
 }

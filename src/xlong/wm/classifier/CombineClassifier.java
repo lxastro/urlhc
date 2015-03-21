@@ -1,11 +1,30 @@
 package xlong.wm.classifier;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Vector;
 
 import xlong.wm.sample.Composite;
 import xlong.wm.sample.Sample;
 
-public class CombineClassifier implements SingleLabelClassifier {
+public class CombineClassifier extends AbstractSingleLabelClassifier {
+	
+	private static final long serialVersionUID = -2154362118894218993L;
+	private static String fileDir = "result/CC/";
+	private static String extName = ".model";
+	static {
+		try {
+			Files.createDirectories(Paths.get(fileDir));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	SingleLabelClassifier c1,c2;
 
 	public CombineClassifier(SingleLabelClassifier c1, SingleLabelClassifier c2) {
@@ -48,6 +67,28 @@ public class CombineClassifier implements SingleLabelClassifier {
 			}
 		}
 		return vo;
+	}
+	
+	private static String getModelName(int id) {
+		return fileDir + "svm" + id + extName;
+	}
+
+	@Override
+	public void save(int id) throws Exception {
+		String fileName = getModelName(id);
+		FileOutputStream fos = new FileOutputStream(fileName);
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+        oos.writeObject(this);
+        oos.close();
+	}
+
+	public static CombineClassifier load(int id) throws Exception {
+		String fileName = getModelName(id);
+		FileInputStream fis = new FileInputStream(fileName);
+		ObjectInputStream ois = new ObjectInputStream(fis);
+		CombineClassifier classifier = (CombineClassifier) ois.readObject();
+		ois.close();
+		return classifier;
 	}
 
 }
