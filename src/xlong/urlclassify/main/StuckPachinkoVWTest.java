@@ -8,6 +8,7 @@ import java.util.Vector;
 
 
 
+
 import weka.classifiers.Classifier;
 //import weka.classifiers.functions.LibSVM;
 import xlong.util.MyWriter;
@@ -21,10 +22,10 @@ import xlong.nlp.tokenizer.SingleWordTokenizer;
 import xlong.nlp.tokenizer.Tokenizer;
 import xlong.wm.classifier.OutputStructure;
 import xlong.wm.classifier.SingleLabelClassifier;
-import xlong.wm.classifier.StuckPachinkoSVMClassifier;
+import xlong.wm.classifier.StuckPachinkoVWClassifier;
 import xlong.wm.classifier.partsfactory.ClassifierPartsFactory;
 
-public class StuckPachinkoSVMTest {
+public class StuckPachinkoVWTest {
 
 	public static void main(String[] args) throws Exception {
 		
@@ -38,7 +39,7 @@ public class StuckPachinkoSVMTest {
 		OntologyTree tree = OntologyTree.getTree(ontologyFile);
 		
 		String stopWordsFile = "/data/stopwords.txt";
-		TextToSparseVectorConverter.addStopwords(new BufferedReader(new InputStreamReader(StuckPachinkoSVMTest.class.getResourceAsStream(stopWordsFile))));
+		TextToSparseVectorConverter.addStopwords(new BufferedReader(new InputStreamReader(StuckPachinkoVWTest.class.getResourceAsStream(stopWordsFile))));
 		
 		ClassifierPartsFactory factory = new ClassifierPartsFactory() {
 			protected final Tokenizer tokenizer = new SingleWordTokenizer();
@@ -58,15 +59,7 @@ public class StuckPachinkoSVMTest {
 			}
 			@Override
 			public Classifier getNewClassifier() {
-				weka.classifiers.Classifier classifier = new xlong.urlclassify.others.LibLINEAR(); //weka 3-7
-				
-//				weka.classifiers.Classifier classifier = new weka.classifiers.functions.LibSVM(); //weka 3-6
-//				try {
-//					((LibSVM) classifier).setOptions(weka.core.Utils.splitOptions("-K 0 -J -V -M 1024 -H 0 -B"));
-//				} catch (Exception e) {
-//					e.printStackTrace();
-//				}
-				return classifier;
+				return null;
 			}
 		};	
 		
@@ -78,8 +71,8 @@ public class StuckPachinkoSVMTest {
 		System.out.println(treeComposite.getComposites().size());
 		Vector<Composite> composites;
 		
-		//composites = treeComposite.split(new int[] {70, 30}, new Random(123));
-		composites = treeComposite.split(new int[] {2, 1}, new Random(123));
+		composites = treeComposite.split(new int[] {70, 30}, new Random(123));
+		//composites = treeComposite.split(new int[] {2, 1}, new Random(123));
 		train = composites.get(0);
 		train.cutBranch(1);
 		System.out.println(train.countSample());
@@ -91,9 +84,10 @@ public class StuckPachinkoSVMTest {
 		train = new Composite(resultDir + "/trainText", new Texts());
 		test = new Composite(resultDir + "/testText", new Texts());
 		
-		SingleLabelClassifier singleLabelClassifier = new StuckPachinkoSVMClassifier(factory);
+		SingleLabelClassifier singleLabelClassifier = new StuckPachinkoVWClassifier(factory);
 		System.out.println("train");
 		singleLabelClassifier.train(train);
+		
 		
 		OntologySingleLabelEvaluater evaluater = new OntologySingleLabelEvaluater(singleLabelClassifier, tree);
 		System.out.println("test");

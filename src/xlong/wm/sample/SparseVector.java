@@ -67,6 +67,9 @@ public class SparseVector implements Property {
 	
 	@Override
 	public final String toString() {
+		if (indexs.length == 0) {
+			return "";
+		}
 		String str = indexs[0] + ":" + values[0];
 		for (int i = 1; i < indexs.length; i++) {
 			str += " " + indexs[i] + ":" + values[i];
