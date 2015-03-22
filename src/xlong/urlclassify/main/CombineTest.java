@@ -21,6 +21,7 @@ import xlong.wm.classifier.SimplePattenClassifier;
 import xlong.wm.classifier.SingleLabelClassifier;
 import xlong.wm.classifier.StuckPachinkoVWClassifier;
 import xlong.wm.classifier.partsfactory.ClassifierPartsFactory;
+import xlong.wm.classifier.partsfactory.SimpleClassifierPartsFactory;
 
 public class CombineTest {
 
@@ -38,7 +39,7 @@ public class CombineTest {
 		String stopWordsFile = "/data/stopwords.txt";
 		TextToSparseVectorConverter.addStopwords(new BufferedReader(new InputStreamReader(StuckPachinkoSVMTest.class.getResourceAsStream(stopWordsFile))));
 		
-		ClassifierPartsFactory factory = new ClassifierPartsFactory() {
+		ClassifierPartsFactory factory = new SimpleClassifierPartsFactory() {
 
 			private static final long serialVersionUID = -8952784630277717127L;
 			protected final Tokenizer tokenizer = new SingleWordTokenizer();
@@ -57,7 +58,7 @@ public class CombineTest {
 					;
 			}
 			@Override
-			public Classifier getNewClassifier() {
+			public Classifier getNewWekaClassifier() {
 				weka.classifiers.Classifier classifier = new xlong.urlclassify.others.LibLINEAR(); //weka 3-7
 				
 //				weka.classifiers.Classifier classifier = new weka.classifiers.functions.LibSVM(); //weka 3-6

@@ -74,7 +74,7 @@ public class StuckPachinkoSVMClassifier extends AbstractSingleLabelClassifier  {
 	}
 	
 	private weka.classifiers.Classifier getNewClassifier() {
-		return factory.getNewClassifier();
+		return factory.getNewWekaClassifier();
 	}
 	
 	

@@ -9,6 +9,7 @@ import java.util.Vector;
 
 
 
+
 import weka.classifiers.Classifier;
 //import weka.classifiers.functions.LibSVM;
 import xlong.util.MyWriter;
@@ -24,6 +25,7 @@ import xlong.wm.classifier.OutputStructure;
 import xlong.wm.classifier.SingleLabelClassifier;
 import xlong.wm.classifier.StuckPachinkoSVMClassifier;
 import xlong.wm.classifier.partsfactory.ClassifierPartsFactory;
+import xlong.wm.classifier.partsfactory.SimpleClassifierPartsFactory;
 
 public class StuckPachinkoSVMTest {
 
@@ -41,7 +43,7 @@ public class StuckPachinkoSVMTest {
 		String stopWordsFile = "/data/stopwords.txt";
 		TextToSparseVectorConverter.addStopwords(new BufferedReader(new InputStreamReader(StuckPachinkoSVMTest.class.getResourceAsStream(stopWordsFile))));
 		
-		ClassifierPartsFactory factory = new ClassifierPartsFactory() {
+		ClassifierPartsFactory factory = new SimpleClassifierPartsFactory() {
 		
 			private static final long serialVersionUID = 8437804111731321668L;
 			protected final Tokenizer tokenizer = new SingleWordTokenizer();
@@ -60,7 +62,7 @@ public class StuckPachinkoSVMTest {
 					;
 			}
 			@Override
-			public Classifier getNewClassifier() {
+			public Classifier getNewWekaClassifier() {
 				weka.classifiers.Classifier classifier = new xlong.urlclassify.others.LibLINEAR(); //weka 3-7
 				
 //				weka.classifiers.Classifier classifier = new weka.classifiers.functions.LibSVM(); //weka 3-6
