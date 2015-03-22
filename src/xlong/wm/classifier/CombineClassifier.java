@@ -31,6 +31,14 @@ public class CombineClassifier extends AbstractSingleLabelClassifier {
 		this.c1 = c1;
 		this.c2 = c2;
 	}
+	
+	public SingleLabelClassifier getC1() {
+		return c1;
+	}
+	
+	public SingleLabelClassifier getC2() {
+		return c2;
+	}
 
 	@Override
 	public void train(Composite composite) throws Exception {

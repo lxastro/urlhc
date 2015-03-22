@@ -19,7 +19,7 @@ import xlong.wm.classifier.CombineClassifier;
 import xlong.wm.classifier.OutputStructure;
 import xlong.wm.classifier.SimplePattenClassifier;
 import xlong.wm.classifier.SingleLabelClassifier;
-import xlong.wm.classifier.StuckPachinkoSVMClassifier;
+import xlong.wm.classifier.StuckPachinkoVWClassifier;
 import xlong.wm.classifier.partsfactory.ClassifierPartsFactory;
 
 public class CombineTest {
@@ -77,8 +77,8 @@ public class CombineTest {
 		System.out.println(treeComposite.getComposites().size());
 		Vector<Composite> composites;
 		
-		//composites = treeComposite.split(new int[] {70, 30}, new Random(123));
-		composites = treeComposite.split(new int[] {2, 1}, new Random(123));
+		composites = treeComposite.split(new int[] {70, 30}, new Random(123));
+		//composites = treeComposite.split(new int[] {2, 1}, new Random(123));
 		train = composites.get(0);
 		train.cutBranch(1);
 		System.out.println(train.countSample());
@@ -93,14 +93,19 @@ public class CombineTest {
 		train.relabel();
 		
 		
-		SingleLabelClassifier singleLabelClassifier1 = new SimplePattenClassifier(5);
-		SingleLabelClassifier singleLabelClassifier2 = new StuckPachinkoSVMClassifier(factory);
+		SingleLabelClassifier singleLabelClassifier1 = new SimplePattenClassifier(2);
+		SingleLabelClassifier singleLabelClassifier2 = new StuckPachinkoVWClassifier(factory);
 		SingleLabelClassifier singleLabelClassifier = new CombineClassifier(singleLabelClassifier1, singleLabelClassifier2);
 		System.out.println("train");
 
 		singleLabelClassifier.train(train);
-		singleLabelClassifier.save(1);
-		singleLabelClassifier = CombineClassifier.load(1);
+//		singleLabelClassifier.save(1);
+//		singleLabelClassifier = CombineClassifier.load(1);
+//		singleLabelClassifier1 = new SimplePattenClassifier(2);
+//		singleLabelClassifier1.train(train);
+//		singleLabelClassifier2 = ((CombineClassifier) singleLabelClassifier).getC2();
+//		singleLabelClassifier = new CombineClassifier(singleLabelClassifier1, singleLabelClassifier2);
+		
 		
 		OntologySingleLabelEvaluater evaluater = new OntologySingleLabelEvaluater(singleLabelClassifier, tree);
 		System.out.println("test");

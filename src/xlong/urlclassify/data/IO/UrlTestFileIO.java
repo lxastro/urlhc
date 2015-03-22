@@ -40,14 +40,14 @@ public class UrlTestFileIO {
 		String url;
 		while ((url = in.readLine()) != null) {
 			url = UrlNormalizer.normalize(url);
-			samples.add(new Sample(url, new Text(url), null));
+			samples.add(new Sample(url, new Text(url)));
 		}
 		in.close();
 		return samples;
 	}
 	
 	public static void main(String[] args) throws Exception {
-		String filePath = "E:/longx/data/URLs/URLs_100.txt";
+		String filePath = "E:/longx/data/URLs/URLs_10.txt";
 		Vector<Sample> samples = load(filePath);
 		System.out.println(samples.size());
 	}
