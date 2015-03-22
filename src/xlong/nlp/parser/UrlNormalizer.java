@@ -1,7 +1,7 @@
 /**
  * Project : Classify URLs
  */
-package xlong.urlclassify.data.processer;
+package xlong.nlp.parser;
 
 import java.net.URI;
 import java.net.URL;

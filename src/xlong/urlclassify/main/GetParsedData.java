@@ -8,6 +8,7 @@ import xlong.nlp.parser.BigramSegmentParser;
 import xlong.nlp.parser.Parser;
 import xlong.nlp.parser.TokenizeParser;
 import xlong.nlp.parser.UnionParser;
+import xlong.nlp.parser.UrlNormalizeParser;
 import xlong.nlp.tokenizer.SingleWordTokenizer;
 import xlong.urlclassify.data.IO.UrlMapIO;
 import xlong.wm.ontology.OntologyTree;
@@ -40,7 +41,7 @@ public class GetParsedData {
 		Parser segParser = new TokenizeParser(null, new SingleWordTokenizer(), new  BigramSegmentParser(null));
 		Parser simpleParser = new TokenizeParser(null, new SingleWordTokenizer());
 		//Parser stemParser = new TokenizeParser(null, new SingleWordTokenizer(), new  BigramSegmentParser(null, new SnowballStemParser(null)));
-		Parser parser = new UnionParser(null, segParser, simpleParser);
+		Parser parser = new UnionParser(new UrlNormalizeParser(), segParser, simpleParser);
 		Parser urlParser = parser;
 		
 

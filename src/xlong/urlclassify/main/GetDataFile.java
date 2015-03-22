@@ -14,7 +14,6 @@ import xlong.urlclassify.data.filter.ExistUrlFilter;
 import xlong.urlclassify.data.filter.UrlMapFilter;
 import xlong.urlclassify.data.processer.SimplifyProcesser;
 import xlong.urlclassify.data.processer.Triple2PairProcesser;
-import xlong.urlclassify.data.processer.UrlNormalizeProcesser;
 import xlong.wm.ontology.OntologyTree;
 
 public class GetDataFile {
@@ -45,9 +44,9 @@ public class GetDataFile {
 		
 		// Read data file.
 		NTripleReader typeReader = new NTripleReader(typeFile
-				, new SimplifyProcesser(new UrlNormalizeProcesser(new Triple2PairProcesser())));
+				, new SimplifyProcesser(new Triple2PairProcesser()));
 		NTripleReader urlReader = new NTripleReader(urlFile
-				, new SimplifyProcesser(new UrlNormalizeProcesser(new Triple2PairProcesser())));
+				, new SimplifyProcesser(new Triple2PairProcesser()));
 		typeReader.readAll(typePairFile);
 		urlReader.readAll(urlPairFile);
 

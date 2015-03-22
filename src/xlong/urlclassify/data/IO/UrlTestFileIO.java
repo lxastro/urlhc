@@ -9,7 +9,12 @@ import java.util.Iterator;
 import java.util.Vector;
 import java.util.stream.Stream;
 
-import xlong.urlclassify.data.processer.UrlNormalizer;
+import xlong.nlp.parser.BigramSegmentParser;
+import xlong.nlp.parser.Parser;
+import xlong.nlp.parser.TokenizeParser;
+import xlong.nlp.parser.UnionParser;
+import xlong.nlp.parser.UrlNormalizeParser;
+import xlong.nlp.tokenizer.SingleWordTokenizer;
 import xlong.wm.sample.Sample;
 import xlong.wm.sample.Text;
 
@@ -34,13 +39,17 @@ public class UrlTestFileIO {
 		sp.close();
 		return samples;
 	}
+	
+	private static Parser segParser = new TokenizeParser(null, new SingleWordTokenizer(), new  BigramSegmentParser(null));
+	private static Parser simpleParser = new TokenizeParser(null, new SingleWordTokenizer());
+	private static Parser parser = new UnionParser(new UrlNormalizeParser(), segParser, simpleParser);
+	
 	private static Vector<Sample> loadFile(String filePath) throws Exception {
 		BufferedReader in = new BufferedReader(new FileReader(filePath));
 		Vector<Sample> samples = new Vector<>();
 		String url;
 		while ((url = in.readLine()) != null) {
-			url = UrlNormalizer.normalize(url);
-			samples.add(new Sample(url, new Text(url)));
+			samples.add(new Sample(url, new Text(parser.parse(url))));
 		}
 		in.close();
 		return samples;
