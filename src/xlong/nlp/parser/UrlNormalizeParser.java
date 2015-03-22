@@ -7,9 +7,6 @@ package xlong.nlp.parser;
  */
 public class UrlNormalizeParser extends Parser {
 
-	public UrlNormalizeParser() {
-		super(null);
-	}
 	/**
 	 * 
 	 * @param father father

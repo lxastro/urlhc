@@ -42,7 +42,7 @@ public class UrlTestFileIO {
 	
 	private static Parser segParser = new TokenizeParser(null, new SingleWordTokenizer(), new  BigramSegmentParser(null));
 	private static Parser simpleParser = new TokenizeParser(null, new SingleWordTokenizer());
-	private static Parser parser = new UnionParser(new UrlNormalizeParser(), segParser, simpleParser);
+	private static Parser parser = new UnionParser(new UrlNormalizeParser(null), segParser, simpleParser);
 	
 	private static Vector<Sample> loadFile(String filePath) throws Exception {
 		BufferedReader in = new BufferedReader(new FileReader(filePath));

@@ -41,7 +41,7 @@ public class GetParsedData {
 		Parser segParser = new TokenizeParser(null, new SingleWordTokenizer(), new  BigramSegmentParser(null));
 		Parser simpleParser = new TokenizeParser(null, new SingleWordTokenizer());
 		//Parser stemParser = new TokenizeParser(null, new SingleWordTokenizer(), new  BigramSegmentParser(null, new SnowballStemParser(null)));
-		Parser parser = new UnionParser(new UrlNormalizeParser(), segParser, simpleParser);
+		Parser parser = new UnionParser(new UrlNormalizeParser(null), segParser, simpleParser);
 		Parser urlParser = parser;
 		
 
