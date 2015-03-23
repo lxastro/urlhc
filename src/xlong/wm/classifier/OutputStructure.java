@@ -1,6 +1,6 @@
 package xlong.wm.classifier;
 
-public class OutputStructure {
+public class OutputStructure implements Comparable<OutputStructure>{
 	private String label;
 	private double p;
 	public OutputStructure(String label, double p) {
@@ -30,6 +30,10 @@ public class OutputStructure {
 	 */
 	public void setP(double p) {
 		this.p = p;
+	}
+	@Override
+	public int compareTo(OutputStructure o) {
+		return -(int)Math.signum(p-o.p);
 	}
 	
 

@@ -89,7 +89,7 @@ public class StuckPachinkoVWTest {
 		train = new Composite(resultDir + "/trainText", new Texts());
 		test = new Composite(resultDir + "/testText", new Texts());
 		
-		SingleLabelClassifier singleLabelClassifier = new StuckPachinkoVWClassifier(factory);
+		SingleLabelClassifier singleLabelClassifier = new StuckPachinkoVWClassifier(factory, "AllPath");
 		System.out.println("train");
 		singleLabelClassifier.train(train);
 		singleLabelClassifier.save(1);

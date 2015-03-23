@@ -11,7 +11,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -32,6 +34,7 @@ public class StuckPachinkoVWClassifier extends AbstractSingleLabelClassifier  {
 	private Map<String, TextToSparseVectorConverter> stuckConverters;
 	private Map<String, TreeSet<String>> sons;
 	protected ClassifierPartsFactory factory;
+	private String testType = "Pachinko";
 	
 	private int fileID = 0;
 	
@@ -41,7 +44,6 @@ public class StuckPachinkoVWClassifier extends AbstractSingleLabelClassifier  {
 	private static String inputExt = ".classifier";
 	private static String modelExt = ".model";
 	private static String cacheExt = ".cache";
-	//private static final String OPTION = "-M";
 	
 	static {
 		try {
@@ -53,13 +55,18 @@ public class StuckPachinkoVWClassifier extends AbstractSingleLabelClassifier  {
 		}
 	}
 
-	public StuckPachinkoVWClassifier(ClassifierPartsFactory factory) {
+	public StuckPachinkoVWClassifier(ClassifierPartsFactory factory, String testType) {
 		selecters = new TreeMap<String,  String>();
 		stuckers = new TreeMap<String,  String>();
 		selectConverters = new TreeMap<String, TextToSparseVectorConverter>();
 		stuckConverters = new TreeMap<String, TextToSparseVectorConverter>();
 		sons = new TreeMap<String, TreeSet<String>>();
 		this.factory = factory;
+		this.testType = testType;
+//		if (testType.startsWith("BeamSearch")) {
+//			beamWidth = Integer.parseInt(testType.substring(10).trim());
+//			this.testType = "BeamSearch";
+//		}
 	}
 	
 	public StuckPachinkoVWClassifier(StuckPachinkoVWClassifier classifiers) {
@@ -69,6 +76,7 @@ public class StuckPachinkoVWClassifier extends AbstractSingleLabelClassifier  {
 		stuckConverters = classifiers.stuckConverters;
 		sons = classifiers.sons;
 		factory = classifiers.factory;
+		testType = classifiers.testType;
 	}
 	
 	private TextToSparseVectorConverter getNewConverter() {
@@ -220,57 +228,146 @@ public class StuckPachinkoVWClassifier extends AbstractSingleLabelClassifier  {
 
 	@Override
 	public OutputStructure test(Sample sample) throws Exception {
-		return test("root", 1.0, sample);
-	}
-	
-	private OutputStructure test(String label, double p, Sample sample) throws Exception {
-		TreeSet<String> subLabels = sons.get(label);
-		if (subLabels == null) {
-			return new OutputStructure(label, p);
-		}
-		
-		String stucker = loadModel(stuckers.get(label));
-		double pstuck = 0;
-		if (stucker != null) {
-			TextToSparseVectorConverter converter = stuckConverters.get(label);
-			Sample vecSample = converter.convert(sample);
-
-			pstuck = VWBinaryClassifier.testVector((SparseVector)vecSample.getProperty(), stucker);
-			
-			int classID = (int)(pstuck + 0.5);
-			if (classID == 1) {
-				return new OutputStructure(label, p*pstuck);
-			}
-		}
-		double maximum = -1;
-		String maxLabel = null;
-		for (String subLabel:subLabels) {
-			String selecter = loadModel(selecters.get(join(label, subLabel)));
-			TextToSparseVectorConverter converter = selectConverters.get(join(label, subLabel));
-			Sample vecSample = converter.convert(sample);
-
-			double pselect = VWBinaryClassifier.testVector((SparseVector)vecSample.getProperty(), selecter);
-
-			if (pselect > maximum) {
-				maximum = pselect;
-				maxLabel = subLabel;
-			}
-		}
-		return test(maxLabel, p*(1-pstuck)*maximum, sample);
+		Vector<Sample> samples = new Vector<>();
+		samples.add(sample);
+		return test(samples).firstElement();
 	}
 	
 	@Override
 	public Vector<OutputStructure> test(Vector<Sample> samples) throws Exception {
+		Vector<OutputStructure> outputs;
+		switch (testType) {
+		case "AllPath":
+			outputs = testAllPath(samples);
+			break;
+//		case "BeamSearch":
+//			outputs = testBeamSearch(samples);
+//			break;
+		default:
+			outputs = testPachinko(samples);
+			break;
+		}
+		return outputs;
+	}
+	
+	public Vector<OutputStructure> testAllPath(Vector<Sample> samples) throws Exception {
+		Vector<OutputStructure> outputs = new Vector<OutputStructure>();
+		Map<String, Vector<Double>> probs = new HashMap<String, Vector<Double>>();
+		calProbs("root", samples, probs);
+		int n = samples.size();
+		for (int i = 0; i < n; i++) {
+			outputs.add(testAllPath("root", i, probs));
+		}
+		return outputs;
+	}
+	
+	private OutputStructure testAllPath(String label, int idx, Map<String, Vector<Double>> probs) {
+		PriorityQueue<OutputStructure> outs = new PriorityQueue<OutputStructure>();
+		
+		TreeSet<String> sublabelSet= sons.get(label);
+		if (sublabelSet == null) {
+			return new OutputStructure(label, 1.0);
+		}
+		
+		Vector<String> subLabels = new Vector<String>(sublabelSet);
+		int m = subLabels.size();
+		
+		String stucker = loadModel(stuckers.get(label));
+		double unstuckProb = 1.0;
+		
+		if (stucker != null) {
+			double pr = getProbs(stucker, idx, probs);
+			outs.add(new OutputStructure(label, pr));
+			unstuckProb = 1.0 - pr;
+		}
+		
+		Double[] subprobs = new Double[m];
+		Double tot = 0.0;
+		
+		for (int j = 0; j < m; j++) {
+			String subLabel = subLabels.get(j);
+			String selecter = loadModel(selecters.get(join(label, subLabel)));
+			subprobs[j] = getProbs(selecter, idx, probs);
+			tot += subprobs[j];
+		}
+		
+		if (tot < 1e-8) {
+			for (int j = 0; j < m; j++) {
+				subprobs[j] = 1.0/m;
+			}
+		} else {
+			for (int j = 0; j < m; j++) {
+				subprobs[j] = subprobs[j]/tot;
+			}
+		}
+		
+		for (int j = 0; j < m; j++) {
+			String subLabel = subLabels.get(j);
+			OutputStructure subout = testAllPath(subLabel, idx, probs);
+			outs.add(new OutputStructure(subout.getLabel(), unstuckProb * subprobs[j] * subout.getP()));
+		}
+		
+		return outs.peek();
+	}
+	
+	private Double getProbs(String modelName, int idx, Map<String, Vector<Double>> probs) {
+		return probs.get(modelName).get(idx);
+	}
+	
+	private void calProbs(String label, Vector<Sample> samples, Map<String, Vector<Double>> probs) throws Exception {
+		TreeSet<String> sublabelSet= sons.get(label);
+		if (sublabelSet == null) {
+			return;
+		}
+		int n = samples.size();
+		Vector<String> subLabels = new Vector<String>(sublabelSet);
+		int m = subLabels.size();
+		
+		String stucker = loadModel(stuckers.get(label));
+		if (stucker != null) {
+			Vector<SparseVector> vectors = new Vector<SparseVector>();
+			TextToSparseVectorConverter converter = stuckConverters.get(label);
+			for (int i = 0; i < n; i++) {
+				Sample sample = samples.get(i);
+				Sample vecSample = converter.convert(sample);
+				vectors.add((SparseVector)vecSample.getProperty());
+			}
+			Vector<Double> prs = VWBinaryClassifier.testVectors(vectors, stucker);
+			probs.put(stucker, prs);
+		}
+
+		for (int j = 0; j < m; j++) {
+			String subLabel = subLabels.get(j);
+			String selecter = loadModel(selecters.get(join(label, subLabel)));
+			TextToSparseVectorConverter converter = selectConverters.get(join(label, subLabel));
+			
+			
+			Vector<SparseVector> vectors = new Vector<SparseVector>();
+			for (int i = 0; i < n; i++) {
+				Sample sample = samples.get(i);
+				Sample vecSample = converter.convert(sample);
+				vectors.add((SparseVector)vecSample.getProperty());
+			}
+			Vector<Double> prs = VWBinaryClassifier.testVectors(vectors, selecter);
+			probs.put(selecter,prs);
+			
+			calProbs(subLabel, samples, probs);
+		}
+		
+	}
+	
+
+	public Vector<OutputStructure> testPachinko(Vector<Sample> samples) throws Exception {
 		Vector<Double> ps = new Vector<Double>();
 		int n = samples.size();
 		for (int i = 0; i < n; i++) {
 			ps.add(1.0);
 		}
-		return test("root", ps, samples);
+		return testPachinko("root", ps, samples);
 	}
 	
 
-	public Vector<OutputStructure> test(String label, Vector<Double> ps, Vector<Sample> samples) throws Exception {
+	public Vector<OutputStructure> testPachinko(String label, Vector<Double> ps, Vector<Sample> samples) throws Exception {
 		Vector<OutputStructure> results = new Vector<OutputStructure>();
 		TreeSet<String> sublabelSet= sons.get(label);
 		
@@ -296,9 +393,10 @@ public class StuckPachinkoVWClassifier extends AbstractSingleLabelClassifier  {
 		String stucker = loadModel(stuckers.get(label));
 		if (stucker != null) {
 			Vector<SparseVector> vectors = new Vector<SparseVector>();
+			TextToSparseVectorConverter converter = stuckConverters.get(label);
+			
 			for (int i = 0; i < n; i++) {
-				Sample sample = samples.get(i);
-				TextToSparseVectorConverter converter = stuckConverters.get(label);
+				Sample sample = samples.get(i);	
 				Sample vecSample = converter.convert(sample);
 				vectors.add((SparseVector)vecSample.getProperty());
 			}
@@ -371,7 +469,7 @@ public class StuckPachinkoVWClassifier extends AbstractSingleLabelClassifier  {
 					partsP.add(nextP[i]);
 				}
 			}
-			Vector<OutputStructure> partsRes = test(subLabel, partsP, partsSamples);
+			Vector<OutputStructure> partsRes = testPachinko(subLabel, partsP, partsSamples);
 			int idx = 0;
 			for (int i = 0; i < n; i++) {
 				if (nextLabel[i] == subLabel) {

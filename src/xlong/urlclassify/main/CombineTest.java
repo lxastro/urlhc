@@ -95,7 +95,7 @@ public class CombineTest {
 		
 		
 		SingleLabelClassifier singleLabelClassifier1 = new SimplePattenClassifier(2);
-		SingleLabelClassifier singleLabelClassifier2 = new StuckPachinkoVWClassifier(factory);
+		SingleLabelClassifier singleLabelClassifier2 = new StuckPachinkoVWClassifier(factory, "Pachinko");
 		SingleLabelClassifier singleLabelClassifier = new CombineClassifier(singleLabelClassifier1, singleLabelClassifier2);
 		System.out.println("train");
 
