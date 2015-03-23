@@ -6,8 +6,7 @@ import java.util.Random;
 import java.util.Vector;
 
 import weka.classifiers.Classifier;
-import xlong.nlp.tokenizer.SingleWordTokenizer;
-import xlong.nlp.tokenizer.Tokenizer;
+//import weka.classifiers.functions.LibSVM;
 import xlong.util.MyWriter;
 import xlong.wm.evaluater.OntologySingleLabelEvaluater;
 import xlong.wm.ontology.OntologyTree;
@@ -15,15 +14,15 @@ import xlong.wm.sample.Composite;
 import xlong.wm.sample.Sample;
 import xlong.wm.sample.Texts;
 import xlong.wm.sample.converter.TextToSparseVectorConverter;
-import xlong.wm.classifier.CombineClassifier;
+import xlong.nlp.tokenizer.SingleWordTokenizer;
+import xlong.nlp.tokenizer.Tokenizer;
 import xlong.wm.classifier.OutputStructure;
-import xlong.wm.classifier.SimplePattenClassifier;
 import xlong.wm.classifier.SingleLabelClassifier;
-import xlong.wm.classifier.StuckPachinkoVWClassifier;
+import xlong.wm.classifier.StuckTopDownMultiBaseClassifier;
 import xlong.wm.classifier.partsfactory.ClassifierPartsFactory;
 import xlong.wm.classifier.partsfactory.SimpleClassifierPartsFactory;
 
-public class CombineTest {
+public class StuckMulitnomialTest {
 
 	public static void main(String[] args) throws Exception {
 		
@@ -35,45 +34,38 @@ public class CombineTest {
 		String parsedFile = args[2]; 
 		
 		OntologyTree tree = OntologyTree.getTree(ontologyFile);
-
+		
 		String stopWordsFile = "/data/stopwords.txt";
-		TextToSparseVectorConverter.addStopwords(new BufferedReader(new InputStreamReader(StuckPachinkoSVMTest.class.getResourceAsStream(stopWordsFile))));
+		TextToSparseVectorConverter.addStopwords(new BufferedReader(new InputStreamReader(StuckMulitnomialTest.class.getResourceAsStream(stopWordsFile))));
 		
 		ClassifierPartsFactory factory = new SimpleClassifierPartsFactory() {
-
-			private static final long serialVersionUID = -8952784630277717127L;
+		
+			private static final long serialVersionUID = 8437804111731321668L;
 			protected final Tokenizer tokenizer = new SingleWordTokenizer();
 			@Override
 			public TextToSparseVectorConverter getNewConverter() {
 				return new TextToSparseVectorConverter(tokenizer)
 					.enableLowerCaseToken()
-					//.enableStopwords()
+					.enableStopwords()
 					//.enableIDF()
 					//.enableTF()
 					.enableDetemineByDocFreq()
 					.setMinTermFreq(2)
 					.setFilterShortWords(1)
 					.setIgnoreSmallFeatures(0)
-					//.setWordToKeep(100000)
+					.setWordToKeep(100000)
 					;
 			}
 			@Override
 			public Classifier getNewWekaClassifier() {
-				weka.classifiers.Classifier classifier = new xlong.urlclassify.others.LibLINEAR(); //weka 3-7
-				
-//				weka.classifiers.Classifier classifier = new weka.classifiers.functions.LibSVM(); //weka 3-6
-//				try {
-//					((LibSVM) classifier).setOptions(weka.core.Utils.splitOptions("-K 0 -J -V -M 1024 -H 0 -B"));
-//				} catch (Exception e) {
-//					e.printStackTrace();
-//				}
-				return classifier;
+				return new weka.classifiers.bayes.NaiveBayesMultinomial();
 			}
 		};	
 		
+
+		
 		Composite treeComposite, train, test;
 		treeComposite = new Composite(parsedFile, new Texts());
-		
 		System.out.println(treeComposite.countSample());
 		System.out.println(treeComposite.getComposites().size());
 		Vector<Composite> composites;
@@ -81,7 +73,7 @@ public class CombineTest {
 		composites = treeComposite.split(new int[] {70, 30}, new Random(123));
 		//composites = treeComposite.split(new int[] {2, 1}, new Random(123));
 		train = composites.get(0);
-		train.cutBranch(1);
+		train.cutBranch(10);
 		System.out.println(train.countSample());
 		train.save(resultDir + "/trainText");	
 		test = composites.get(1);
@@ -91,22 +83,11 @@ public class CombineTest {
 		train = new Composite(resultDir + "/trainText", new Texts());
 		test = new Composite(resultDir + "/testText", new Texts());
 		
-		train.relabel();
-		
-		
-		SingleLabelClassifier singleLabelClassifier1 = new SimplePattenClassifier(2);
-		SingleLabelClassifier singleLabelClassifier2 = new StuckPachinkoVWClassifier(factory);
-		SingleLabelClassifier singleLabelClassifier = new CombineClassifier(singleLabelClassifier1, singleLabelClassifier2);
+		SingleLabelClassifier singleLabelClassifier = new StuckTopDownMultiBaseClassifier(factory, "BeamSearch 5");
 		System.out.println("train");
-
 		singleLabelClassifier.train(train);
-//		singleLabelClassifier.save(1);
-//		singleLabelClassifier = CombineClassifier.load(1);
-//		singleLabelClassifier1 = new SimplePattenClassifier(2);
-//		singleLabelClassifier1.train(train);
-//		singleLabelClassifier2 = ((CombineClassifier) singleLabelClassifier).getC2();
-//		singleLabelClassifier = new CombineClassifier(singleLabelClassifier1, singleLabelClassifier2);
-		
+		singleLabelClassifier.save(1);
+		singleLabelClassifier = StuckTopDownMultiBaseClassifier.load(1);
 		
 		OntologySingleLabelEvaluater evaluater = new OntologySingleLabelEvaluater(singleLabelClassifier, tree);
 		System.out.println("test");
@@ -131,7 +112,7 @@ public class CombineTest {
 		}
 		MyWriter.close();
 
-		MyWriter.writeln("ignore rate: " + evaluater.getIgnoreRate());
+		
 		MyWriter.writeln("accuracy: " + evaluater.getAccuracy());
 		MyWriter.writeln("hamming loss: " + evaluater.getAverHammingLoss());
 		MyWriter.writeln("precision: " + evaluater.getAverPrecision());

@@ -121,7 +121,7 @@ public class StuckPachinkoVWClassifier extends AbstractSingleLabelClassifier  {
 			String line = "vw -d " + (inputDir + String.valueOf(i) + inputExt);
 			line += " --loss_function logistic --cache_file " + (cacheDir + String.valueOf(i) + cacheExt); 
 			//line += " --l1 1e-8 -f " + (modelDir + String.valueOf(i) + modelName);
-			line += " --passes 30 --l1 1e-8 -f " + (modelDir + String.valueOf(i) + modelExt);
+			line += " --passes 35 --l1 1e-8 -f " + (modelDir + String.valueOf(i) + modelExt);
 			VWBinaryClassifier.runCommand(line);
 		}
 	}
