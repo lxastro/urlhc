@@ -96,11 +96,11 @@ public class StuckPachinkoSVMTest {
 		train = new Composite(resultDir + "/trainText", new Texts());
 		test = new Composite(resultDir + "/testText", new Texts());
 		
-		SingleLabelClassifier singleLabelClassifier = new StuckPachinkoSVMClassifier(factory);
+		SingleLabelClassifier singleLabelClassifier = new StuckPachinkoSVMClassifier(factory, "Model/SVM1");
 		System.out.println("train");
 		singleLabelClassifier.train(train);
-		singleLabelClassifier.save(1);
-		singleLabelClassifier = StuckPachinkoSVMClassifier.load(1);
+		singleLabelClassifier.save();
+		singleLabelClassifier = StuckPachinkoSVMClassifier.load("Model/SVM1");
 		
 		OntologySingleLabelEvaluater evaluater = new OntologySingleLabelEvaluater(singleLabelClassifier, tree);
 		System.out.println("test");

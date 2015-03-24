@@ -10,5 +10,5 @@ public interface SingleLabelClassifier extends Serializable {
 	public void train(Composite composite) throws Exception;
 	public OutputStructure test(Sample sample) throws Exception;
 	public Vector<OutputStructure> test(Vector<Sample> samples) throws Exception;
-	public void save(int id) throws Exception;
+	public void save() throws Exception;
 }

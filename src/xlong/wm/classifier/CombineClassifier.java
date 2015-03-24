@@ -2,34 +2,36 @@ package xlong.wm.classifier;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Vector;
 
+import xlong.util.FileUtil;
+import xlong.wm.classifier.partsfactory.SimpleClassifierPartsFactory;
 import xlong.wm.sample.Composite;
 import xlong.wm.sample.Sample;
 
 public class CombineClassifier extends AbstractSingleLabelClassifier {
 	
 	private static final long serialVersionUID = -2154362118894218993L;
-	private static String fileDir = "result/CC/";
-	private static String extName = ".model";
-	static {
-		try {
-			Files.createDirectories(Paths.get(fileDir));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+
+	private static String modelExt = ".combine";
 	
 	SingleLabelClassifier c1,c2;
 
-	public CombineClassifier(SingleLabelClassifier c1, SingleLabelClassifier c2) {
+	public CombineClassifier(SingleLabelClassifier c1, SingleLabelClassifier c2, String modelDir) {
+		super(
+			new SimpleClassifierPartsFactory() {
+				private static final long serialVersionUID = 8824649711942306652L;
+			},
+			modelDir
+		);
 		this.c1 = c1;
 		this.c2 = c2;
+	}
+	
+	private void initDir() throws Exception {
+		FileUtil.createDir(modelDir);
 	}
 	
 	public SingleLabelClassifier getC1() {
@@ -39,9 +41,34 @@ public class CombineClassifier extends AbstractSingleLabelClassifier {
 	public SingleLabelClassifier getC2() {
 		return c2;
 	}
+	
+	private static String getModelName(String modelDir) {
+		return modelDir + "root" + modelExt;
+	}
+
+	@Override
+	public void save() throws Exception {
+		String fileName = getModelName(modelDir);
+		FileOutputStream fos = new FileOutputStream(fileName);
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+        oos.writeObject(this);
+        oos.close();
+	}
+
+	public static CombineClassifier load(String modelDir) throws Exception {
+		modelDir = FileUtil.addTralingSlash(modelDir);
+		String fileName = getModelName(modelDir);
+		FileInputStream fis = new FileInputStream(fileName);
+		ObjectInputStream ois = new ObjectInputStream(fis);
+		CombineClassifier classifier = (CombineClassifier) ois.readObject();
+		ois.close();
+		return classifier;
+	}
+	
 
 	@Override
 	public void train(Composite composite) throws Exception {
+		initDir();
 		System.out.println("train 1");
 		c1.train(composite);
 		System.out.println("train 2");
@@ -75,28 +102,6 @@ public class CombineClassifier extends AbstractSingleLabelClassifier {
 			}
 		}
 		return vo;
-	}
-	
-	private static String getModelName(int id) {
-		return fileDir + "svm" + id + extName;
-	}
-
-	@Override
-	public void save(int id) throws Exception {
-		String fileName = getModelName(id);
-		FileOutputStream fos = new FileOutputStream(fileName);
-        ObjectOutputStream oos = new ObjectOutputStream(fos);
-        oos.writeObject(this);
-        oos.close();
-	}
-
-	public static CombineClassifier load(int id) throws Exception {
-		String fileName = getModelName(id);
-		FileInputStream fis = new FileInputStream(fileName);
-		ObjectInputStream ois = new ObjectInputStream(fis);
-		CombineClassifier classifier = (CombineClassifier) ois.readObject();
-		ois.close();
-		return classifier;
 	}
 
 }

@@ -8,4 +8,10 @@ public interface ClassifierPartsFactory extends Serializable{
 	public TextToSparseVectorConverter getNewConverter();
 	
 	public weka.classifiers.Classifier getNewWekaClassifier();
+	
+	public String getTrainArgs();
+	
+	public String getTestArgs();
+	
+	public String getTempDir();
 }

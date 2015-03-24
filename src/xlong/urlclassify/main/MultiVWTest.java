@@ -5,8 +5,6 @@ import java.io.InputStreamReader;
 import java.util.Random;
 import java.util.Vector;
 
-import weka.classifiers.Classifier;
-//import weka.classifiers.functions.LibSVM;
 import xlong.util.MyWriter;
 import xlong.wm.evaluater.OntologySingleLabelEvaluater;
 import xlong.wm.ontology.OntologyTree;
@@ -57,8 +55,8 @@ public class MultiVWTest {
 					;
 			}
 			@Override
-			public Classifier getNewWekaClassifier() {
-				return null;
+			public String getTrainArgs() {
+				return "-passes 5";
 			}
 		};	
 		
@@ -69,8 +67,8 @@ public class MultiVWTest {
 		System.out.println(treeComposite.getComposites().size());
 		Vector<Composite> composites;
 		
-		composites = treeComposite.split(new int[] {70, 30}, new Random(123));
-		//composites = treeComposite.split(new int[] {2, 1}, new Random(123));
+		//composites = treeComposite.split(new int[] {70, 30}, new Random(123));
+		composites = treeComposite.split(new int[] {2, 1}, new Random(123));
 		train = composites.get(0);
 		train.cutBranch(1);
 		System.out.println(train.countSample());
@@ -82,11 +80,11 @@ public class MultiVWTest {
 		train = new Composite(resultDir + "/trainText", new Texts());
 		test = new Composite(resultDir + "/testText", new Texts());
 		
-		SingleLabelClassifier singleLabelClassifier = new StuckMultiVWClassifier(factory, "AllPath");
+		SingleLabelClassifier singleLabelClassifier = new StuckMultiVWClassifier(factory, "Model/MultiVW1");
 		System.out.println("train");
 		singleLabelClassifier.train(train);
-		singleLabelClassifier.save(1);
-		singleLabelClassifier = StuckMultiVWClassifier.load(1);
+		singleLabelClassifier.save();
+		singleLabelClassifier = StuckMultiVWClassifier.load("Model/MultiVW1");
 		
 		OntologySingleLabelEvaluater evaluater = new OntologySingleLabelEvaluater(singleLabelClassifier, tree);
 		System.out.println("test");

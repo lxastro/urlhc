@@ -12,6 +12,8 @@ import xlong.wm.sample.Texts;
 import xlong.wm.classifier.OutputStructure;
 import xlong.wm.classifier.SimplePattenClassifier;
 import xlong.wm.classifier.SingleLabelClassifier;
+import xlong.wm.classifier.partsfactory.ClassifierPartsFactory;
+import xlong.wm.classifier.partsfactory.SimpleClassifierPartsFactory;
 
 public class SimplePattenTest {
 
@@ -26,6 +28,14 @@ public class SimplePattenTest {
 		
 		OntologyTree tree = OntologyTree.getTree(ontologyFile);
 		
+		ClassifierPartsFactory factory = new SimpleClassifierPartsFactory() {
+			private static final long serialVersionUID = 8437804111731321668L;
+			@Override
+			public String getTrainArgs() {
+				return "-minnum 5";
+			};
+		};	
+		
 		Composite treeComposite, train, test;
 		treeComposite = new Composite(parsedFile, new Texts());
 		
@@ -34,7 +44,7 @@ public class SimplePattenTest {
 		Vector<Composite> composites;
 		
 		//composites = treeComposite.split(new int[] {70, 30}, new Random(123));
-		composites = treeComposite.split(new int[] {7, 3}, new Random(123));
+		composites = treeComposite.split(new int[] {2, 1}, new Random(123));
 		train = composites.get(0);
 		train.cutBranch(1);
 		System.out.println(train.countSample());
@@ -47,44 +57,42 @@ public class SimplePattenTest {
 		test = new Composite(resultDir + "/testText", new Texts());
 		
 		train.relabel();
-		for (int minnum = 5; minnum <= 5; minnum*=2) {
-			SingleLabelClassifier singleLabelClassifier = new SimplePattenClassifier(minnum);
-			System.out.println("train " + minnum);
-			singleLabelClassifier.train(train);
-			singleLabelClassifier.save(1);
-			singleLabelClassifier = SimplePattenClassifier.load(1);
-			
-			OntologySingleLabelEvaluater evaluater = new OntologySingleLabelEvaluater(singleLabelClassifier, tree);
-			System.out.println("test");
-			evaluater.evaluate(test);	
-	
-			MyWriter.setFile(resultDir + "/evaluate.txt", false);
-			MyWriter.writeln("accuracy: " + evaluater.getAccuracy());
-			MyWriter.writeln("hamming loss: " + evaluater.getAverHammingLoss());
-			MyWriter.writeln("precision: " + evaluater.getAverPrecision());
-			MyWriter.writeln("recall: " + evaluater.getAverRecall());
-			MyWriter.writeln("f1: " + evaluater.getAverF1());
-			MyWriter.close();
-			
-			Vector<String> actuals = evaluater.getActuals();
-			Vector<OutputStructure> predicts = evaluater.getPredicts();
-			Vector<Sample> samples = evaluater.getSamples();
-			int n = actuals.size();
-			MyWriter.setFile(resultDir + "/output.txt", false);
-			for (int i = 0; i < n; i++) {
-				MyWriter.writeln(samples.get(i).getURL());
-				MyWriter.writeln(predicts.get(i).getLabel() + " " + actuals.get(i) + " " + predicts.get(i).getP());
-			}
-			MyWriter.close();
-	
-			MyWriter.writeln("MINNUM: " + minnum);
-			MyWriter.writeln("ignore rate: " + evaluater.getIgnoreRate());
-			MyWriter.writeln("accuracy: " + evaluater.getAccuracy());
-			MyWriter.writeln("hamming loss: " + evaluater.getAverHammingLoss());
-			MyWriter.writeln("precision: " + evaluater.getAverPrecision());
-			MyWriter.writeln("recall: " + evaluater.getAverRecall());
-			MyWriter.writeln("f1: " + evaluater.getAverF1());
+
+		SingleLabelClassifier singleLabelClassifier = new SimplePattenClassifier(factory, "Model/SimplePattern1");
+
+		singleLabelClassifier.train(train);
+		singleLabelClassifier.save();
+		singleLabelClassifier = SimplePattenClassifier.load("Model/SimplePattern1");
+		
+		OntologySingleLabelEvaluater evaluater = new OntologySingleLabelEvaluater(singleLabelClassifier, tree);
+		System.out.println("test");
+		evaluater.evaluate(test);	
+
+		MyWriter.setFile(resultDir + "/evaluate.txt", false);
+		MyWriter.writeln("accuracy: " + evaluater.getAccuracy());
+		MyWriter.writeln("hamming loss: " + evaluater.getAverHammingLoss());
+		MyWriter.writeln("precision: " + evaluater.getAverPrecision());
+		MyWriter.writeln("recall: " + evaluater.getAverRecall());
+		MyWriter.writeln("f1: " + evaluater.getAverF1());
+		MyWriter.close();
+		
+		Vector<String> actuals = evaluater.getActuals();
+		Vector<OutputStructure> predicts = evaluater.getPredicts();
+		Vector<Sample> samples = evaluater.getSamples();
+		int n = actuals.size();
+		MyWriter.setFile(resultDir + "/output.txt", false);
+		for (int i = 0; i < n; i++) {
+			MyWriter.writeln(samples.get(i).getURL());
+			MyWriter.writeln(predicts.get(i).getLabel() + " " + actuals.get(i) + " " + predicts.get(i).getP());
 		}
+		MyWriter.close();
+
+		MyWriter.writeln("ignore rate: " + evaluater.getIgnoreRate());
+		MyWriter.writeln("accuracy: " + evaluater.getAccuracy());
+		MyWriter.writeln("hamming loss: " + evaluater.getAverHammingLoss());
+		MyWriter.writeln("precision: " + evaluater.getAverPrecision());
+		MyWriter.writeln("recall: " + evaluater.getAverRecall());
+		MyWriter.writeln("f1: " + evaluater.getAverF1());
 	}
 
 }

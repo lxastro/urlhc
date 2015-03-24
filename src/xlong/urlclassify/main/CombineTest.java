@@ -5,7 +5,6 @@ import java.io.InputStreamReader;
 import java.util.Random;
 import java.util.Vector;
 
-import weka.classifiers.Classifier;
 import xlong.nlp.tokenizer.SingleWordTokenizer;
 import xlong.nlp.tokenizer.Tokenizer;
 import xlong.util.MyWriter;
@@ -19,7 +18,7 @@ import xlong.wm.classifier.CombineClassifier;
 import xlong.wm.classifier.OutputStructure;
 import xlong.wm.classifier.SimplePattenClassifier;
 import xlong.wm.classifier.SingleLabelClassifier;
-import xlong.wm.classifier.StuckPachinkoVWClassifier;
+import xlong.wm.classifier.StuckBinaryVWClassifier;
 import xlong.wm.classifier.partsfactory.ClassifierPartsFactory;
 import xlong.wm.classifier.partsfactory.SimpleClassifierPartsFactory;
 
@@ -39,7 +38,16 @@ public class CombineTest {
 		String stopWordsFile = "/data/stopwords.txt";
 		TextToSparseVectorConverter.addStopwords(new BufferedReader(new InputStreamReader(StuckPachinkoSVMTest.class.getResourceAsStream(stopWordsFile))));
 		
-		ClassifierPartsFactory factory = new SimpleClassifierPartsFactory() {
+		ClassifierPartsFactory factory1 = new SimpleClassifierPartsFactory() {
+			private static final long serialVersionUID = 8437804111731321668L;
+			@Override
+			public String getTrainArgs() {
+				return "-minnum 2";
+			};
+		};	
+		
+		
+		ClassifierPartsFactory factory2 = new SimpleClassifierPartsFactory() {
 
 			private static final long serialVersionUID = -8952784630277717127L;
 			protected final Tokenizer tokenizer = new SingleWordTokenizer();
@@ -58,16 +66,12 @@ public class CombineTest {
 					;
 			}
 			@Override
-			public Classifier getNewWekaClassifier() {
-				weka.classifiers.Classifier classifier = new xlong.urlclassify.others.LibLINEAR(); //weka 3-7
-				
-//				weka.classifiers.Classifier classifier = new weka.classifiers.functions.LibSVM(); //weka 3-6
-//				try {
-//					((LibSVM) classifier).setOptions(weka.core.Utils.splitOptions("-K 0 -J -V -M 1024 -H 0 -B"));
-//				} catch (Exception e) {
-//					e.printStackTrace();
-//				}
-				return classifier;
+			public String getTrainArgs() {
+				return "-passes 5";
+			}
+			@Override
+			public String getTestArgs() {
+				return "-testMethod Pachinko";
 			}
 		};	
 		
@@ -78,8 +82,8 @@ public class CombineTest {
 		System.out.println(treeComposite.getComposites().size());
 		Vector<Composite> composites;
 		
-		composites = treeComposite.split(new int[] {70, 30}, new Random(123));
-		//composites = treeComposite.split(new int[] {2, 1}, new Random(123));
+		//composites = treeComposite.split(new int[] {70, 30}, new Random(123));
+		composites = treeComposite.split(new int[] {2, 1}, new Random(123));
 		train = composites.get(0);
 		train.cutBranch(1);
 		System.out.println(train.countSample());
@@ -94,9 +98,9 @@ public class CombineTest {
 		train.relabel();
 		
 		
-		SingleLabelClassifier singleLabelClassifier1 = new SimplePattenClassifier(2);
-		SingleLabelClassifier singleLabelClassifier2 = new StuckPachinkoVWClassifier(factory, "Pachinko");
-		SingleLabelClassifier singleLabelClassifier = new CombineClassifier(singleLabelClassifier1, singleLabelClassifier2);
+		SingleLabelClassifier singleLabelClassifier1 = new SimplePattenClassifier(factory1, "Model/Combine1/c1");
+		SingleLabelClassifier singleLabelClassifier2 = new StuckBinaryVWClassifier(factory2, "Model/Combine1/c2");
+		SingleLabelClassifier singleLabelClassifier = new CombineClassifier(singleLabelClassifier1, singleLabelClassifier2, "Model/Combine");
 		System.out.println("train");
 
 		singleLabelClassifier.train(train);

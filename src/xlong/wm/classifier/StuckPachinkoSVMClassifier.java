@@ -2,17 +2,15 @@ package xlong.wm.classifier;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
 
 import weka.core.Instances;
+import xlong.util.FileUtil;
 import xlong.wm.classifier.adapter.SparseVectorSampleToWekaInstanceAdapter;
 import xlong.wm.classifier.partsfactory.ClassifierPartsFactory;
 import xlong.wm.sample.Composite;
@@ -33,20 +31,11 @@ public class StuckPachinkoSVMClassifier extends AbstractSingleLabelClassifier  {
 	
 	private int fileID = 0;
 	
-	private static String fileDir = "result/SVM/";
-	private static String extName = ".classifier";
-	private static String modelExt = ".model";
-	//private static final String OPTION = "-M";
-	
-	static {
-		try {
-			Files.createDirectories(Paths.get(fileDir));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+	private static String modelExt = ".svm";
 
-	public StuckPachinkoSVMClassifier(ClassifierPartsFactory factory) {
+
+	public StuckPachinkoSVMClassifier(ClassifierPartsFactory factory, String modelDir) {
+		super(factory, modelDir);
 		selecters = new TreeMap<String,  String>();
 		stuckers = new TreeMap<String,  String>();
 		selectConverters = new TreeMap<String, TextToSparseVectorConverter>();
@@ -55,18 +44,10 @@ public class StuckPachinkoSVMClassifier extends AbstractSingleLabelClassifier  {
 		stuckAdapters = new TreeMap<String, SparseVectorSampleToWekaInstanceAdapter>();	
 		sons = new TreeMap<String, TreeSet<String>>();
 		this.factory = factory;
-		fileID = 0;
 	}
 	
-	public StuckPachinkoSVMClassifier(StuckPachinkoSVMClassifier classifiers) {
-		selecters = classifiers.selecters;
-		stuckers = classifiers.stuckers;
-		selectConverters = classifiers.selectConverters;
-		stuckConverters = classifiers.stuckConverters;
-		selectAdapters = classifiers.selectAdapters;
-		stuckAdapters = classifiers.stuckAdapters;
-		sons = classifiers.sons;
-		factory = classifiers.factory;
+	private void initDir() throws Exception {
+		FileUtil.createDir(modelDir);
 	}
 	
 	private TextToSparseVectorConverter getNewConverter() {
@@ -83,7 +64,7 @@ public class StuckPachinkoSVMClassifier extends AbstractSingleLabelClassifier  {
 	}
 	
 	private String newFilePath() {
-		return fileDir + String.valueOf(fileID++) + extName;
+		return modelDir + String.valueOf(fileID++) + modelExt;
 	}
 	
 	private String saveClassifier(weka.classifiers.Classifier classifier) throws Exception {
@@ -110,8 +91,32 @@ public class StuckPachinkoSVMClassifier extends AbstractSingleLabelClassifier  {
 		return classifier;
 	}
 	
+	private static String getModelName(String modelDir) {
+		return modelDir + "root" + modelExt;
+	}
+
+	@Override
+	public void save() throws Exception {
+		String fileName = getModelName(modelDir);
+		FileOutputStream fos = new FileOutputStream(fileName);
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+        oos.writeObject(this);
+        oos.close();
+	}
+
+	public static StuckPachinkoSVMClassifier load(String modelDir) throws Exception {
+		modelDir = FileUtil.addTralingSlash(modelDir);
+		String fileName = getModelName(modelDir);
+		FileInputStream fis = new FileInputStream(fileName);
+		ObjectInputStream ois = new ObjectInputStream(fis);
+		StuckPachinkoSVMClassifier classifier = (StuckPachinkoSVMClassifier) ois.readObject();
+		ois.close();
+		return classifier;
+	}
+	
 	@Override
 	public void train(Composite composite) throws Exception {
+		initDir();
 		train(composite.getLabel().getText(), composite);
 		for (Composite subcomp:composite.getComposites()) {
 			train(subcomp);
@@ -370,27 +375,4 @@ public class StuckPachinkoSVMClassifier extends AbstractSingleLabelClassifier  {
 		}
 		return results;
 	}
-	
-	private static String getModelName(int id) {
-		return fileDir + "svm" + id + modelExt;
-	}
-
-	@Override
-	public void save(int id) throws Exception {
-		String fileName = getModelName(id);
-		FileOutputStream fos = new FileOutputStream(fileName);
-        ObjectOutputStream oos = new ObjectOutputStream(fos);
-        oos.writeObject(this);
-        oos.close();
-	}
-
-	public static StuckPachinkoSVMClassifier load(int id) throws Exception {
-		String fileName = getModelName(id);
-		FileInputStream fis = new FileInputStream(fileName);
-		ObjectInputStream ois = new ObjectInputStream(fis);
-		StuckPachinkoSVMClassifier classifier = (StuckPachinkoSVMClassifier) ois.readObject();
-		ois.close();
-		return classifier;
-	}
-	
 }

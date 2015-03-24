@@ -2,11 +2,8 @@ package xlong.wm.classifier;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -15,6 +12,8 @@ import java.util.TreeSet;
 import java.util.Vector;
 
 import weka.core.Instances;
+import xlong.util.FileUtil;
+import xlong.util.OptionsUtil;
 import xlong.wm.classifier.adapter.SparseVectorSampleToWekaInstanceAdapter;
 import xlong.wm.classifier.partsfactory.ClassifierPartsFactory;
 import xlong.wm.sample.Composite;
@@ -32,22 +31,14 @@ public class StuckTopDownMultiBaseClassifier extends AbstractSingleLabelClassifi
 	protected Map<String, SparseVectorSampleToWekaInstanceAdapter> stuckAdapters;
 	protected Map<String, TreeSet<String>> sons;
 	protected ClassifierPartsFactory factory;
-	protected String testType = "Pachinko";
-	protected int beamWidth = 5;
-		
-	private static String fileDir = "result/MB/";
+	
+	protected String testType;
+	protected int beamWidth;
+	
 	private static String modelExt = ".model";
 	
-	static {
-		try {
-			Files.createDirectories(Paths.get(fileDir));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	
-	public StuckTopDownMultiBaseClassifier(ClassifierPartsFactory factory, String testType) {
+	public StuckTopDownMultiBaseClassifier(ClassifierPartsFactory factory, String modelDir) {
+		super(factory, modelDir);
 		selecters = new TreeMap<String, weka.classifiers.Classifier>();
 		stuckers = new TreeMap<String, weka.classifiers.Classifier>();
 		selectConverters = new TreeMap<String, TextToSparseVectorConverter>();
@@ -56,27 +47,47 @@ public class StuckTopDownMultiBaseClassifier extends AbstractSingleLabelClassifi
 		stuckAdapters = new TreeMap<String, SparseVectorSampleToWekaInstanceAdapter>();	
 		sons = new TreeMap<String, TreeSet<String>>();
 		this.factory = factory;
-		this.testType = testType;
+	}
+	
+	private void getTestOptions() {
+		Map<String, String> options = OptionsUtil.parseOptions(testArgs);
+		testType = options.get("-testMethod");
 		if (testType.startsWith("BeamSearch")) {
 			beamWidth = Integer.parseInt(testType.substring(10).trim());
-			this.testType = "BeamSearch";
+			testType = "BeamSearch";
 		}
 	}
 	
-	public StuckTopDownMultiBaseClassifier(StuckTopDownMultiBaseClassifier classifiers) {
-		selecters = classifiers.selecters;
-		stuckers = classifiers.stuckers;
-		selectConverters = classifiers.selectConverters;
-		stuckConverters = classifiers.stuckConverters;
-		selectAdapters = classifiers.selectAdapters;
-		stuckAdapters = classifiers.stuckAdapters;
-		sons = classifiers.sons;
-		factory = classifiers.factory;
-		testType = classifiers.testType;
+	private void initDir() throws Exception {
+		FileUtil.createDir(modelDir);
+	}
+	
+	private static String getModelName(String modelDir) {
+		return modelDir + "root" + modelExt;
+	}
+
+	@Override
+	public void save() throws Exception {
+		String fileName = getModelName(modelDir);
+		FileOutputStream fos = new FileOutputStream(fileName);
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+        oos.writeObject(this);
+        oos.close();
+	}
+
+	public static StuckTopDownMultiBaseClassifier load(String modelDir) throws Exception {
+		modelDir = FileUtil.addTralingSlash(modelDir);
+		String fileName = getModelName(modelDir);
+		FileInputStream fis = new FileInputStream(fileName);
+		ObjectInputStream ois = new ObjectInputStream(fis);
+		StuckTopDownMultiBaseClassifier classifier = (StuckTopDownMultiBaseClassifier) ois.readObject();
+		ois.close();
+		return classifier;
 	}
 	
 	@Override
 	public void train(Composite composite) throws Exception {
+		initDir();
 		train(composite.getLabel().getText(), composite);
 		for (Composite subcomp:composite.getComposites()) {
 			train(subcomp);
@@ -203,12 +214,6 @@ public class StuckTopDownMultiBaseClassifier extends AbstractSingleLabelClassifi
 	
 	@Override
 	public Vector<OutputStructure> test(Vector<Sample> samples) throws Exception {
-		
-		if (testType.startsWith("BeamSearch")) {
-			System.out.println("Test type: " + testType + " " + beamWidth);
-		} else {
-			System.out.println("Test type: " + testType);
-		}
 		Vector<OutputStructure> results = new Vector<OutputStructure>();
 		int cnt = 0;
 		for (Sample sample:samples) {
@@ -224,6 +229,7 @@ public class StuckTopDownMultiBaseClassifier extends AbstractSingleLabelClassifi
 	
 	@Override
 	public OutputStructure test(Sample sample) throws Exception {
+		getTestOptions();
 		Pair pair;
 		switch (testType) {
 		case "AllPath":
@@ -400,27 +406,4 @@ public class StuckTopDownMultiBaseClassifier extends AbstractSingleLabelClassifi
 		
 		return pairs.poll();		
 	}
-
-	private static String getModelName(int id) {
-		return fileDir + "mb" + id + modelExt;
-	}
-
-	@Override
-	public void save(int id) throws Exception {
-		String fileName = getModelName(id);
-		FileOutputStream fos = new FileOutputStream(fileName);
-        ObjectOutputStream oos = new ObjectOutputStream(fos);
-        oos.writeObject(this);
-        oos.close();
-	}
-
-	public static StuckTopDownMultiBaseClassifier load(int id) throws Exception {
-		String fileName = getModelName(id);
-		FileInputStream fis = new FileInputStream(fileName);
-		ObjectInputStream ois = new ObjectInputStream(fis);
-		StuckTopDownMultiBaseClassifier classifier = (StuckTopDownMultiBaseClassifier) ois.readObject();
-		ois.close();
-		return classifier;
-	}
-	
 }

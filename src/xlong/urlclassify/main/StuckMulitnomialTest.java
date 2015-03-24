@@ -60,6 +60,10 @@ public class StuckMulitnomialTest {
 			public Classifier getNewWekaClassifier() {
 				return new weka.classifiers.bayes.NaiveBayesMultinomial();
 			}
+			@Override
+			public String getTestArgs() {
+				return "-testMethod Pachinko";
+			}
 		};	
 		
 
@@ -70,10 +74,10 @@ public class StuckMulitnomialTest {
 		System.out.println(treeComposite.getComposites().size());
 		Vector<Composite> composites;
 		
-		composites = treeComposite.split(new int[] {70, 30}, new Random(123));
-		//composites = treeComposite.split(new int[] {2, 1}, new Random(123));
+		//composites = treeComposite.split(new int[] {70, 30}, new Random(123));
+		composites = treeComposite.split(new int[] {2, 1}, new Random(123));
 		train = composites.get(0);
-		train.cutBranch(10);
+		train.cutBranch(1);
 		System.out.println(train.countSample());
 		train.save(resultDir + "/trainText");	
 		test = composites.get(1);
@@ -83,11 +87,11 @@ public class StuckMulitnomialTest {
 		train = new Composite(resultDir + "/trainText", new Texts());
 		test = new Composite(resultDir + "/testText", new Texts());
 		
-		SingleLabelClassifier singleLabelClassifier = new StuckTopDownMultiBaseClassifier(factory, "BeamSearch 5");
+		SingleLabelClassifier singleLabelClassifier = new StuckTopDownMultiBaseClassifier(factory, "Model/StuckMultinomial1");
 		System.out.println("train");
 		singleLabelClassifier.train(train);
-		singleLabelClassifier.save(1);
-		singleLabelClassifier = StuckTopDownMultiBaseClassifier.load(1);
+		singleLabelClassifier.save();
+		singleLabelClassifier = StuckTopDownMultiBaseClassifier.load("Model/StuckMultinomial1");
 		
 		OntologySingleLabelEvaluater evaluater = new OntologySingleLabelEvaluater(singleLabelClassifier, tree);
 		System.out.println("test");

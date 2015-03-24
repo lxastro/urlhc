@@ -2,15 +2,8 @@ package xlong.wm.classifier;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -18,6 +11,8 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import xlong.util.FileUtil;
+import xlong.util.OptionsUtil;
 import xlong.wm.classifier.partsfactory.ClassifierPartsFactory;
 import xlong.wm.sample.Composite;
 import xlong.wm.sample.Sample;
@@ -25,7 +20,7 @@ import xlong.wm.sample.SparseVector;
 import xlong.wm.sample.converter.TextToSparseVectorConverter;
 import xlong.wm.vw.VWUtil;
 
-public class StuckPachinkoVWClassifier extends AbstractSingleLabelClassifier  {
+public class StuckBinaryVWClassifier extends AbstractSingleLabelClassifier  {
 
 	private static final long serialVersionUID = -1579838531910064576L;
 	private Map<String, String> selecters;
@@ -34,87 +29,107 @@ public class StuckPachinkoVWClassifier extends AbstractSingleLabelClassifier  {
 	private Map<String, TextToSparseVectorConverter> stuckConverters;
 	private Map<String, TreeSet<String>> sons;
 	protected ClassifierPartsFactory factory;
-	private String testType = "Pachinko";
+	
+	private String testType;
+	
+	private int npasses;
 	
 	private int fileID = 0;
-	
-	private static String inputDir = "result/VW/input/";
-	private static String modelDir = "result/VW/model/";
-	private static String cacheDir = "result/VW/cache/";
-	private static String inputExt = ".classifier";
-	private static String modelExt = ".model";
-	private static String cacheExt = ".cache";
-	
-	static {
-		try {
-			Files.createDirectories(Paths.get(inputDir));
-			Files.createDirectories(Paths.get(modelDir));
-			Files.createDirectories(Paths.get(cacheDir));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+	private String inputDir;
+	private String cacheDir;
 
-	public StuckPachinkoVWClassifier(ClassifierPartsFactory factory, String testType) {
+	private static String subInputDir = "input/";
+	private static String subCacheDir = "cache/";
+	private static String inputExt = ".classifier";
+	private static String modelExt = ".bvw";
+	private static String cacheExt = ".cache";
+
+	public StuckBinaryVWClassifier(ClassifierPartsFactory factory, String modelDir) {
+		super(factory, modelDir);
 		selecters = new TreeMap<String,  String>();
 		stuckers = new TreeMap<String,  String>();
 		selectConverters = new TreeMap<String, TextToSparseVectorConverter>();
 		stuckConverters = new TreeMap<String, TextToSparseVectorConverter>();
 		sons = new TreeMap<String, TreeSet<String>>();
 		this.factory = factory;
-		this.testType = testType;
-//		if (testType.startsWith("BeamSearch")) {
-//			beamWidth = Integer.parseInt(testType.substring(10).trim());
-//			this.testType = "BeamSearch";
-//		}
+		getTrainOptions();
 	}
 	
-	public StuckPachinkoVWClassifier(StuckPachinkoVWClassifier classifiers) {
-		selecters = classifiers.selecters;
-		stuckers = classifiers.stuckers;
-		selectConverters = classifiers.selectConverters;
-		stuckConverters = classifiers.stuckConverters;
-		sons = classifiers.sons;
-		factory = classifiers.factory;
-		testType = classifiers.testType;
+	private void getTrainOptions() {
+		Map<String, String> options = OptionsUtil.parseOptions(trainArgs);
+		npasses = Integer.parseInt(options.get("-passes"));
+	}
+	
+	private void getTestOptions() {
+		Map<String, String> options = OptionsUtil.parseOptions(testArgs);
+		testType = options.get("-testMethod");
+	}
+	
+	private void initDir() throws Exception {
+		inputDir = tempDir + subInputDir;
+		cacheDir = tempDir + subCacheDir;
+		FileUtil.createDir(inputDir);
+		FileUtil.createDir(modelDir);
+		FileUtil.createDir(cacheDir);
+	}
+	
+	private void finalizeDir() throws Exception {
+		FileUtil.deleteDir(cacheDir);
+		FileUtil.deleteDir(inputDir);
 	}
 	
 	private TextToSparseVectorConverter getNewConverter() {
 		return factory.getNewConverter();
+	}
+
+	private String newFilePath() {
+		return inputDir + String.valueOf(fileID++) + inputExt;
+	}
+	
+	private String lastFileID() {
+		return String.valueOf(fileID - 1);
+	}
+	
+	private String loadModel(String fileID) {
+		if (fileID == null) {
+			return null;
+		}
+		return modelDir + fileID + modelExt;
+	}
+	
+	private static String getModelName(String modelDir) {
+		return modelDir + "root" + modelExt;
+	}
+
+	@Override
+	public void save() throws Exception {
+		String fileName = getModelName(modelDir);
+		FileOutputStream fos = new FileOutputStream(fileName);
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+        oos.writeObject(this);
+        oos.close();
+	}
+
+	public static StuckBinaryVWClassifier load(String modelDir) throws Exception {
+		modelDir = FileUtil.addTralingSlash(modelDir);
+		String fileName = getModelName(modelDir);
+		FileInputStream fis = new FileInputStream(fileName);
+		ObjectInputStream ois = new ObjectInputStream(fis);
+		StuckBinaryVWClassifier classifier = (StuckBinaryVWClassifier) ois.readObject();
+		ois.close();
+		return classifier;
 	}
 	
 	private String join(String s1, String s2) {
 		return s1 + "_" + s2;
 	}
 	
-	private String newFilePath() {
-		return inputDir + String.valueOf(fileID++) + inputExt;
-	}
-	
 	@Override
 	public void train(Composite composite) throws Exception {
+		initDir();
 		getInputFile(composite);
 		getModel();
-		deleteDir(cacheDir);
-	}
-	
-	private static void deleteDir(String path) throws Exception{
-		Files.walkFileTree(Paths.get(path),
-				new SimpleFileVisitor<Path>() {
-					@Override
-					public FileVisitResult postVisitDirectory(Path dir,
-							IOException exc) throws IOException {
-						Files.delete(dir);
-						return FileVisitResult.CONTINUE;
-					}
-
-					@Override
-					public FileVisitResult visitFile(Path file,
-							BasicFileAttributes attrs) throws IOException {
-						Files.delete(file);
-						return FileVisitResult.CONTINUE;
-					}
-				});
+		finalizeDir();
 	}
 	
 	private void getInputFile(Composite composite) throws Exception {
@@ -129,7 +144,7 @@ public class StuckPachinkoVWClassifier extends AbstractSingleLabelClassifier  {
 			String line = "vw -d " + (inputDir + String.valueOf(i) + inputExt);
 			line += " --loss_function logistic --cache_file " + (cacheDir + String.valueOf(i) + cacheExt); 
 			//line += " --l1 1e-8 -f " + (modelDir + String.valueOf(i) + modelName);
-			line += " --passes 35 --l1 1e-8 -f " + (modelDir + String.valueOf(i) + modelExt);
+			line += " --passes " + npasses + " --l1 1e-8 -f " + (modelDir + String.valueOf(i) + modelExt);
 			VWUtil.runCommand(line);
 		}
 	}
@@ -171,7 +186,7 @@ public class StuckPachinkoVWClassifier extends AbstractSingleLabelClassifier  {
 			String classifierPath = newFilePath();
 			VWUtil.createInputFile(((double)cntNeg)/(cntNeg + cntPos), labels, vectors, classifierPath);
 			
-			stuckers.put(label, String.valueOf(fileID - 1));
+			stuckers.put(label, lastFileID());
 			stuckConverters.put(label, converter);
 			
 		}
@@ -209,7 +224,7 @@ public class StuckPachinkoVWClassifier extends AbstractSingleLabelClassifier  {
 			String classifierPath = newFilePath();
 			VWUtil.createInputFile(((double)cntNeg)/(cntNeg + cntPos), labels, vectors, classifierPath);
 			
-			selecters.put(join(label, subcomp.getLabel().getText()), String.valueOf(fileID - 1));
+			selecters.put(join(label, subcomp.getLabel().getText()), lastFileID());
 			selectConverters.put(join(label, subcomp.getLabel().getText()), converter);	
 
 		}
@@ -235,14 +250,12 @@ public class StuckPachinkoVWClassifier extends AbstractSingleLabelClassifier  {
 	
 	@Override
 	public Vector<OutputStructure> test(Vector<Sample> samples) throws Exception {
+		getTestOptions();
 		Vector<OutputStructure> outputs;
 		switch (testType) {
 		case "AllPath":
 			outputs = testAllPath(samples);
 			break;
-//		case "BeamSearch":
-//			outputs = testBeamSearch(samples);
-//			break;
 		default:
 			outputs = testPachinko(samples);
 			break;
@@ -483,34 +496,5 @@ public class StuckPachinkoVWClassifier extends AbstractSingleLabelClassifier  {
 			results.add(new OutputStructure(nextLabel[i], nextP[i]));
 		}
 		return results;
-	}
-	
-	private String loadModel(String fileID) {
-		if (fileID == null) {
-			return null;
-		}
-		return modelDir + fileID + modelExt;
-	}
-	
-	private static String getModelName(int id) {
-		return modelDir + "vw" + id + modelExt;
-	}
-
-	@Override
-	public void save(int id) throws Exception {
-		String fileName = getModelName(id);
-		FileOutputStream fos = new FileOutputStream(fileName);
-        ObjectOutputStream oos = new ObjectOutputStream(fos);
-        oos.writeObject(this);
-        oos.close();
-	}
-
-	public static StuckPachinkoVWClassifier load(int id) throws Exception {
-		String fileName = getModelName(id);
-		FileInputStream fis = new FileInputStream(fileName);
-		ObjectInputStream ois = new ObjectInputStream(fis);
-		StuckPachinkoVWClassifier classifier = (StuckPachinkoVWClassifier) ois.readObject();
-		ois.close();
-		return classifier;
 	}
 }

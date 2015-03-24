@@ -2,45 +2,70 @@ package xlong.wm.classifier;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Vector;
 
+import xlong.util.FileUtil;
+import xlong.util.OptionsUtil;
+import xlong.wm.classifier.partsfactory.ClassifierPartsFactory;
 import xlong.wm.sample.Composite;
 import xlong.wm.sample.Sample;
 
 public class SimplePattenClassifier extends AbstractSingleLabelClassifier {
 
 	private static final long serialVersionUID = 7789480577061548142L;
-	private static String modelDir = "result/SP/model/";
-	private static String modelExt = ".model";
+	private static String modelExt = ".sp";
 	
-	static {
-		try {
-			Files.createDirectories(Paths.get(modelDir));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	
-	private int MINNUM;
+	private int minnum;
 	HashMap<String, Vector<Sample>> hostMap;
 	
-	public SimplePattenClassifier(int minnum) {
+	public SimplePattenClassifier(ClassifierPartsFactory factory, String modelDir) {
+		super(factory, modelDir);
 		hostMap = new HashMap<String, Vector<Sample>>();
-		MINNUM = minnum;
+		getTrainOptions();
+	}
+	
+	private void getTrainOptions() {
+		Map<String, String> options = OptionsUtil.parseOptions(trainArgs);
+		minnum = Integer.parseInt(options.get("-minnum"));
+	}
+	
+	private void initDir() throws Exception {
+		FileUtil.createDir(modelDir);
+	}
+	
+	private static String getModelName(String modelDir) {
+		return modelDir + "root" + modelExt;
+	}
+
+	@Override
+	public void save() throws Exception {
+		String fileName = getModelName(modelDir);
+		FileOutputStream fos = new FileOutputStream(fileName);
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+        oos.writeObject(this);
+        oos.close();
+	}
+
+	public static SimplePattenClassifier load(String modelDir) throws Exception {
+		modelDir = FileUtil.addTralingSlash(modelDir);
+		String fileName = getModelName(modelDir);
+		FileInputStream fis = new FileInputStream(fileName);
+		ObjectInputStream ois = new ObjectInputStream(fis);
+		SimplePattenClassifier classifier = (SimplePattenClassifier) ois.readObject();
+		ois.close();
+		return classifier;
 	}
 	
 	@Override
 	public void train(Composite composite) throws Exception {
+		initDir();
 		Collection<Sample> samples = composite.getAllSamples();
 		// build hostMap
 		System.out.println("Build hostMap");
@@ -95,7 +120,7 @@ public class SimplePattenClassifier extends AbstractSingleLabelClassifier {
 		}
 		
 		int n = samples.size();
-		if (n < MINNUM) {
+		if (n < minnum) {
 			return new OutputStructure(null, 1.0);
 		}
 		
@@ -142,7 +167,7 @@ public class SimplePattenClassifier extends AbstractSingleLabelClassifier {
 			}
 		}
 		
-		if (t-s-1 < MINNUM) {
+		if (t-s-1 < minnum) {
 			return new OutputStructure(null, 1.0);
 		}
 	
@@ -174,27 +199,4 @@ public class SimplePattenClassifier extends AbstractSingleLabelClassifier {
 		}
 		
 	}
-	
-	private static String getModelName(int id) {
-		return modelDir + "sp" + id + modelExt;
-	}
-
-	@Override
-	public void save(int id) throws Exception {
-		String fileName = getModelName(id);
-		FileOutputStream fos = new FileOutputStream(fileName);
-        ObjectOutputStream oos = new ObjectOutputStream(fos);
-        oos.writeObject(this);
-        oos.close();
-	}
-
-	public static SimplePattenClassifier load(int id) throws Exception {
-		String fileName = getModelName(id);
-		FileInputStream fis = new FileInputStream(fileName);
-		ObjectInputStream ois = new ObjectInputStream(fis);
-		SimplePattenClassifier classifier = (SimplePattenClassifier) ois.readObject();
-		ois.close();
-		return classifier;
-	}
-
 }
