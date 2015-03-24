@@ -6,7 +6,7 @@ import java.util.TreeSet;
 
 import xlong.nlp.parser.AddPrefixParser;
 import xlong.nlp.parser.BigramSegmentParser;
-//import xlong.nlp.parser.PTStemParser;
+import xlong.nlp.parser.PTStemParser;
 import xlong.nlp.parser.Parser;
 import xlong.nlp.parser.TokenizeParser;
 import xlong.nlp.parser.UnionParser;
@@ -20,7 +20,7 @@ import xlong.wm.sample.Labels;
 import xlong.wm.sample.Sample;
 import xlong.wm.sample.Text;
 
-public class GetParsedData2 {
+public class GetParsedData3 {
 
 	public static void main(String[] args) throws Exception{
 		
@@ -42,8 +42,8 @@ public class GetParsedData2 {
 		Parser urlTokenParser = new UrlTokenizeParser(null, new AddPrefixParser(null, "u_"));
 		Parser segParser = new TokenizeParser(null, new SingleWordTokenizer(), new BigramSegmentParser(null, new AddPrefixParser(null, "1_")));
 		Parser simpleParser = new TokenizeParser(null, new SingleWordTokenizer(), new AddPrefixParser(null, "2_"));
-//		Parser stemParser = new TokenizeParser(null, new SingleWordTokenizer(), new  BigramSegmentParser(null, new AddPrefixParser(new PTStemParser(null), "3_")));
-		Parser parser = new UnionParser(new UrlNormalizeParser(null), urlTokenParser, segParser, simpleParser);
+		Parser stemParser = new TokenizeParser(null, new SingleWordTokenizer(), new  BigramSegmentParser(null, new AddPrefixParser(new PTStemParser(null), "3_")));
+		Parser parser = new UnionParser(new UrlNormalizeParser(null), urlTokenParser, segParser, simpleParser, stemParser);
 		Parser urlParser = parser;
 		
 		HashMap<String, TreeSet<String>> urlMap = UrlMapIO.read(UrlMapFile);

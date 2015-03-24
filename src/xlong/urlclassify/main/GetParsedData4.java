@@ -11,7 +11,7 @@ import xlong.nlp.parser.Parser;
 import xlong.nlp.parser.TokenizeParser;
 import xlong.nlp.parser.UnionParser;
 import xlong.nlp.parser.UrlNormalizeParser;
-import xlong.nlp.parser.UrlTokenizeParser;
+//import xlong.nlp.parser.UrlTokenizeParser;
 import xlong.nlp.tokenizer.SingleWordTokenizer;
 import xlong.urlclassify.data.IO.UrlMapIO;
 import xlong.wm.ontology.OntologyTree;
@@ -20,7 +20,7 @@ import xlong.wm.sample.Labels;
 import xlong.wm.sample.Sample;
 import xlong.wm.sample.Text;
 
-public class GetParsedData2 {
+public class GetParsedData4 {
 
 	public static void main(String[] args) throws Exception{
 		
@@ -39,11 +39,11 @@ public class GetParsedData2 {
 		
 		OntologyTree tree = OntologyTree.getTree(ontologyFile);
 		BigramSegmentParser.setWeigth(1);
-		Parser urlTokenParser = new UrlTokenizeParser(null, new AddPrefixParser(null, "u_"));
+//		Parser urlTokenParser = new UrlTokenizeParser(null, new AddPrefixParser(null, "u_"));
 		Parser segParser = new TokenizeParser(null, new SingleWordTokenizer(), new BigramSegmentParser(null, new AddPrefixParser(null, "1_")));
 		Parser simpleParser = new TokenizeParser(null, new SingleWordTokenizer(), new AddPrefixParser(null, "2_"));
 //		Parser stemParser = new TokenizeParser(null, new SingleWordTokenizer(), new  BigramSegmentParser(null, new AddPrefixParser(new PTStemParser(null), "3_")));
-		Parser parser = new UnionParser(new UrlNormalizeParser(null), urlTokenParser, segParser, simpleParser);
+		Parser parser = new UnionParser(new UrlNormalizeParser(null), segParser, simpleParser);
 		Parser urlParser = parser;
 		
 		HashMap<String, TreeSet<String>> urlMap = UrlMapIO.read(UrlMapFile);
