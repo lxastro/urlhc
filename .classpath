@@ -3,7 +3,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="E:/longx/lib/liblinear/liblinear-weka-1.8.0/lib/liblinear-1.8.jar"/>
-	<classpathentry kind="lib" path="E:/longx/lib/myjavalib/wordsegmentation.jar"/>
 	<classpathentry kind="lib" path="E:/longx/lib/NxParser/nxparser-1.1.jar"/>
 	<classpathentry kind="lib" path="E:/longx/lib/Apache_Jena/apache-jena-2.11.1/lib/commons-codec-1.6.jar"/>
 	<classpathentry kind="lib" path="E:/longx/lib/Apache_Jena/apache-jena-2.11.1/lib/httpclient-4.2.3.jar"/>

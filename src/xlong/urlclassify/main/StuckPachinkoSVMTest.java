@@ -6,12 +6,7 @@ import java.util.Random;
 import java.util.Vector;
 
 
-
-
-
-
 import weka.classifiers.Classifier;
-//import weka.classifiers.functions.LibSVM;
 import xlong.util.MyWriter;
 import xlong.wm.evaluater.OntologySingleLabelEvaluater;
 import xlong.wm.ontology.OntologyTree;
@@ -19,7 +14,7 @@ import xlong.wm.sample.Composite;
 import xlong.wm.sample.Sample;
 import xlong.wm.sample.Texts;
 import xlong.wm.sample.converter.TextToSparseVectorConverter;
-import xlong.nlp.tokenizer.SingleWordTokenizer;
+import xlong.nlp.tokenizer.SpaceTokenizer;
 import xlong.nlp.tokenizer.Tokenizer;
 import xlong.wm.classifier.OutputStructure;
 import xlong.wm.classifier.SingleLabelClassifier;
@@ -46,7 +41,7 @@ public class StuckPachinkoSVMTest {
 		ClassifierPartsFactory factory = new SimpleClassifierPartsFactory() {
 		
 			private static final long serialVersionUID = 8437804111731321668L;
-			protected final Tokenizer tokenizer = new SingleWordTokenizer();
+			protected final Tokenizer tokenizer = new SpaceTokenizer();
 			@Override
 			public TextToSparseVectorConverter getNewConverter() {
 				return new TextToSparseVectorConverter(tokenizer)

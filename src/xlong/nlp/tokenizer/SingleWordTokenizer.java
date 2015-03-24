@@ -1,40 +1,28 @@
 package xlong.nlp.tokenizer;
 
-import java.util.LinkedList;
-import java.util.List;
-
-public class SingleWordTokenizer extends Tokenizer {
+public class SingleWordTokenizer extends DelimiterTokenizer {
 
 	private static final long serialVersionUID = -740116059502329171L;
 	private static final String DELIMITERSREG = "[0-9_\\W]";
 
 	public SingleWordTokenizer() {
-		super(null);
+		super(DELIMITERSREG);
 	}
 
 	public SingleWordTokenizer(Tokenizer father) {
-		super(father);
-	}
-
-	private List<String> filterOutEmptyStrings(String[] splitString) {
-		LinkedList<String> clean = new LinkedList<String>();
-
-		for (int i = 0; i < splitString.length; i++) {
-			if (!splitString[i].equals("")) {
-				clean.add(splitString[i]);
-			}
-		}
-		return clean;
-	}
-
-	@Override
-	public List<String> myTokenize(String text) {
-		return filterOutEmptyStrings(text.split(DELIMITERSREG));
+		super(father, DELIMITERSREG);
 	}
 
 	public static void main(String[] args) {
 		for (String word : new SingleWordTokenizer().tokenize(new String(
 				"http://www.nfl.com/teams/greenbaypackers/profile?team=GB"))) {
+			System.out.println(word);
+		}
+		
+		System.out.println("! next !");
+		
+		for (String word : new SingleWordTokenizer().tokenize(new String(
+				"1_a 1_b 1_c 2_a 2_b 2_c"))) {
 			System.out.println(word);
 		}
 	}

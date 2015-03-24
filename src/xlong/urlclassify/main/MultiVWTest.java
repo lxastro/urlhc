@@ -12,7 +12,7 @@ import xlong.wm.sample.Composite;
 import xlong.wm.sample.Sample;
 import xlong.wm.sample.Texts;
 import xlong.wm.sample.converter.TextToSparseVectorConverter;
-import xlong.nlp.tokenizer.SingleWordTokenizer;
+import xlong.nlp.tokenizer.SpaceTokenizer;
 import xlong.nlp.tokenizer.Tokenizer;
 import xlong.wm.classifier.OutputStructure;
 import xlong.wm.classifier.SingleLabelClassifier;
@@ -39,7 +39,7 @@ public class MultiVWTest {
 		ClassifierPartsFactory factory = new SimpleClassifierPartsFactory() {
 	
 			private static final long serialVersionUID = -8135225662164486027L;
-			protected final Tokenizer tokenizer = new SingleWordTokenizer();
+			protected final Tokenizer tokenizer = new SpaceTokenizer();
 			@Override
 			public TextToSparseVectorConverter getNewConverter() {
 				return new TextToSparseVectorConverter(tokenizer)

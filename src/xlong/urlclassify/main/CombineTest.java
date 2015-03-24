@@ -5,7 +5,7 @@ import java.io.InputStreamReader;
 import java.util.Random;
 import java.util.Vector;
 
-import xlong.nlp.tokenizer.SingleWordTokenizer;
+import xlong.nlp.tokenizer.SpaceTokenizer;
 import xlong.nlp.tokenizer.Tokenizer;
 import xlong.util.MyWriter;
 import xlong.wm.evaluater.OntologySingleLabelEvaluater;
@@ -50,7 +50,7 @@ public class CombineTest {
 		ClassifierPartsFactory factory2 = new SimpleClassifierPartsFactory() {
 
 			private static final long serialVersionUID = -8952784630277717127L;
-			protected final Tokenizer tokenizer = new SingleWordTokenizer();
+			protected final Tokenizer tokenizer = new SpaceTokenizer();
 			@Override
 			public TextToSparseVectorConverter getNewConverter() {
 				return new TextToSparseVectorConverter(tokenizer)
@@ -60,18 +60,18 @@ public class CombineTest {
 					//.enableTF()
 					.enableDetemineByDocFreq()
 					.setMinTermFreq(2)
-					.setFilterShortWords(1)
+					.setFilterShortWords(3)
 					.setIgnoreSmallFeatures(0)
 					//.setWordToKeep(100000)
 					;
 			}
 			@Override
 			public String getTrainArgs() {
-				return "-passes 5";
+				return "-passes 35";
 			}
 			@Override
 			public String getTestArgs() {
-				return "-testMethod Pachinko";
+				return "-testMethod AllPath";
 			}
 		};	
 		
@@ -82,8 +82,8 @@ public class CombineTest {
 		System.out.println(treeComposite.getComposites().size());
 		Vector<Composite> composites;
 		
-		//composites = treeComposite.split(new int[] {70, 30}, new Random(123));
-		composites = treeComposite.split(new int[] {2, 1}, new Random(123));
+		composites = treeComposite.split(new int[] {70, 30}, new Random(123));
+		//composites = treeComposite.split(new int[] {2, 1}, new Random(123));
 		train = composites.get(0);
 		train.cutBranch(1);
 		System.out.println(train.countSample());
@@ -98,14 +98,14 @@ public class CombineTest {
 		train.relabel();
 		
 		
-		SingleLabelClassifier singleLabelClassifier1 = new SimplePattenClassifier(factory1, "Model/Combine1/c1");
-		SingleLabelClassifier singleLabelClassifier2 = new StuckBinaryVWClassifier(factory2, "Model/Combine1/c2");
-		SingleLabelClassifier singleLabelClassifier = new CombineClassifier(singleLabelClassifier1, singleLabelClassifier2, "Model/Combine");
+		SingleLabelClassifier singleLabelClassifier1 = new SimplePattenClassifier(factory1, "Model/CombineMin2Pass35All/c1");
+		SingleLabelClassifier singleLabelClassifier2 = new StuckBinaryVWClassifier(factory2, "Model/CombineMin2Pass35All/c2");
+		SingleLabelClassifier singleLabelClassifier = new CombineClassifier(singleLabelClassifier1, singleLabelClassifier2, "Model/CombineMin2Pass35All");
 		System.out.println("train");
 
 		singleLabelClassifier.train(train);
-//		singleLabelClassifier.save(1);
-//		singleLabelClassifier = CombineClassifier.load(1);
+		singleLabelClassifier.save();
+		singleLabelClassifier = CombineClassifier.load("Model/CombineMin2Pass35All");
 //		singleLabelClassifier1 = new SimplePattenClassifier(2);
 //		singleLabelClassifier1.train(train);
 //		singleLabelClassifier2 = ((CombineClassifier) singleLabelClassifier).getC2();

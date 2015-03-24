@@ -78,7 +78,7 @@ public class GetParsedData {
 		}
 		System.out.println(treeComposite.countSample());
 		treeComposite.cutBranch(1);
-		System.out.println(flatComposite.getComposites().size());
+		System.out.println(treeComposite.getComposites().size());
 		treeComposite.save(TreeParsedFile);
 		
 	}

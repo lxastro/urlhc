@@ -14,7 +14,7 @@ import xlong.wm.sample.Composite;
 import xlong.wm.sample.Sample;
 import xlong.wm.sample.Texts;
 import xlong.wm.sample.converter.TextToSparseVectorConverter;
-import xlong.nlp.tokenizer.SingleWordTokenizer;
+import xlong.nlp.tokenizer.SpaceTokenizer;
 import xlong.nlp.tokenizer.Tokenizer;
 import xlong.wm.classifier.OutputStructure;
 import xlong.wm.classifier.SingleLabelClassifier;
@@ -41,7 +41,7 @@ public class StuckMulitnomialTest {
 		ClassifierPartsFactory factory = new SimpleClassifierPartsFactory() {
 		
 			private static final long serialVersionUID = 8437804111731321668L;
-			protected final Tokenizer tokenizer = new SingleWordTokenizer();
+			protected final Tokenizer tokenizer = new SpaceTokenizer();
 			@Override
 			public TextToSparseVectorConverter getNewConverter() {
 				return new TextToSparseVectorConverter(tokenizer)
@@ -74,8 +74,8 @@ public class StuckMulitnomialTest {
 		System.out.println(treeComposite.getComposites().size());
 		Vector<Composite> composites;
 		
-		//composites = treeComposite.split(new int[] {70, 30}, new Random(123));
-		composites = treeComposite.split(new int[] {2, 1}, new Random(123));
+		composites = treeComposite.split(new int[] {70, 30}, new Random(123));
+		//composites = treeComposite.split(new int[] {2, 1}, new Random(123));
 		train = composites.get(0);
 		train.cutBranch(1);
 		System.out.println(train.countSample());
