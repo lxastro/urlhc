@@ -316,6 +316,11 @@ public class Composite implements SampleComponent {
 		}
 	}
 	
+	public final void randomSelect(int maxSamples) {
+		// TODO
+		int x=1;
+	}
+	
 	public final Collection<Sample> getAllSamples() {
 		HashSet<Sample> allSamples = new HashSet<Sample>();
 		allSamples.addAll(samples);

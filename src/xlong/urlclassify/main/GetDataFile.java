@@ -75,5 +75,6 @@ public class GetDataFile {
 		urlMap = UrlMapFilter.filterUrlMap(urlMap);
 		System.out.println(urlMap.size());
 		UrlMapIO.write(urlMap, UrlMapFile);
+		
 	}
 }
